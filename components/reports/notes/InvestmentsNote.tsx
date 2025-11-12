@@ -1,0 +1,57 @@
+import React from 'react';
+import { InvestmentsScheduleData } from '../../../types.ts';
+
+interface InvestmentsNoteProps {
+    data: InvestmentsScheduleData;
+}
+
+const formatCurrency = (val: string): string => {
+    const num = parseFloat(val.replace(/,/g, ''));
+    if (isNaN(num) || num === 0) return '-';
+    return new Intl.NumberFormat('en-IN', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+    }).format(num);
+};
+
+export const InvestmentsNote: React.FC<InvestmentsNoteProps> = ({ data }) => {
+    const parse = (val: string) => parseFloat(val.replace(/,/g, '')) || 0;
+    const totalCy = data.items.reduce((sum, item) => sum + parse(item.amountCy), 0);
+    const totalPy = data.items.reduce((sum, item) => sum + parse(item.amountPy), 0);
+    
+    return (
+        <div className="space-y-4">
+            <div className="overflow-x-auto">
+                <table className="min-w-full text-sm">
+                    <thead className="bg-gray-700/50">
+                        <tr>
+                            <th className="p-2 text-left font-medium w-2/5">Particulars</th>
+                            <th className="p-2 text-left font-medium w-1/5">Basis of Valuation</th>
+                            <th className="p-2 text-right font-medium">Amount CY (₹)</th>
+                            <th className="p-2 text-right font-medium">Amount PY (₹)</th>
+                        </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-600">
+                        {data.items.map(item => (
+                            <tr key={item.id}>
+                                <td className="p-2">{item.particular}</td>
+                                <td className="p-2 text-xs italic text-gray-400">{item.basisOfValuation || 'At Cost'}</td>
+                                <td className="p-2 text-right font-mono">{formatCurrency(item.amountCy)}</td>
+                                <td className="p-2 text-right font-mono">{formatCurrency(item.amountPy)}</td>
+                            </tr>
+                        ))}
+                        <tr className="font-bold bg-gray-700/30">
+                            <td className="p-2" colSpan={2}>Total</td>
+                            <td className="p-2 text-right font-mono">{formatCurrency(totalCy.toString())}</td>
+                            <td className="p-2 text-right font-mono">{formatCurrency(totalPy.toString())}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div>
+                <span className="font-semibold text-gray-400">Aggregate Provision for Diminution in Value: </span>
+                <span className="font-mono">{formatCurrency(data.provisionForDiminution)}</span>
+            </div>
+        </div>
+    );
+};

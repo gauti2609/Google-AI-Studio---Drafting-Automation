@@ -1,13 +1,13 @@
 
 
-
 import React from 'react';
 // FIX: Add file extension to fix module resolution error.
-import { TradeReceivablesData, ScheduleData } from '../../types.ts';
+import { TradeReceivablesData, ScheduleData, TradeReceivablesAgeingRow } from '../../types.ts';
 
 interface TradeReceivablesScheduleProps {
+    title: string;
     data: TradeReceivablesData;
-    onUpdate: React.Dispatch<React.SetStateAction<ScheduleData>>;
+    onUpdate: (data: TradeReceivablesData) => void;
     isFinalized: boolean;
 }
 
@@ -25,68 +25,96 @@ const InputField: React.FC<{ label: string; value: string; onChange: (value: str
     </div>
 );
 
-export const TradeReceivablesSchedule: React.FC<TradeReceivablesScheduleProps> = ({ data, onUpdate, isFinalized }) => {
+const AgeingTable: React.FC<{
+    ageingData: TradeReceivablesAgeingRow[];
+    onUpdate: (category: TradeReceivablesAgeingRow['category'], field: keyof Omit<TradeReceivablesAgeingRow, 'category'>, value: string) => void;
+    isFinalized: boolean;
+}> = ({ ageingData, onUpdate, isFinalized }) => {
 
-    const handleUpdate = (category: 'outstandingForMoreThan6Months' | 'others', field: 'secured' | 'unsecured' | 'doubtful', value: string) => {
-        onUpdate(prev => ({
-            ...prev,
-            tradeReceivables: {
-                ...prev.tradeReceivables,
-                [category]: {
-                    ...prev.tradeReceivables[category],
-                    [field]: value,
-                }
-            }
-        }));
-    };
+    const headers = ['< 6 Months', '6-12 Months', '1-2 Years', '2-3 Years', '> 3 Years', 'Total'];
+    const fields: (keyof Omit<TradeReceivablesAgeingRow, 'category'>)[] = ['lessThan6Months', '6MonthsTo1Year', '1To2Years', '2To3Years', 'moreThan3Years'];
+    const rowConfig = [
+        { category: 'undisputedGood', label: 'Undisputed - Considered Good' },
+        { category: 'undisputedDoubtful', label: 'Undisputed - Considered Doubtful' },
+        { category: 'disputedGood', label: 'Disputed - Considered Good' },
+        { category: 'disputedDoubtful', label: 'Disputed - Considered Doubtful' },
+    ] as const;
 
-    const handleProvisionUpdate = (value: string) => {
-        onUpdate(prev => ({ ...prev, tradeReceivables: { ...prev.tradeReceivables, provisionForDoubtful: value } }));
+    const parse = (val: string) => parseFloat(val) || 0;
+
+    return (
+        <div>
+            <h4 className="font-semibold text-gray-300 mb-2">Trade Receivables Ageing Schedule</h4>
+            <table className="min-w-full text-sm border-collapse border border-gray-600">
+                <thead className="bg-gray-700/50">
+                    <tr>
+                        <th className="p-2 text-left border border-gray-600">Particulars</th>
+                        {headers.map(h => <th key={h} className="p-2 text-right border border-gray-600">{h}</th>)}
+                    </tr>
+                </thead>
+                <tbody>
+                    {rowConfig.map(config => {
+                         const rowData = ageingData.find(r => r.category === config.category);
+                         if (!rowData) return null;
+                         // FIX: Replaced reduce with explicit sum for type safety.
+                         const total = parse(rowData.lessThan6Months) + parse(rowData['6MonthsTo1Year']) + parse(rowData['1To2Years']) + parse(rowData['2To3Years']) + parse(rowData.moreThan3Years);
+                        return (
+                             <tr key={config.category} className="hover:bg-gray-700/30">
+                                <td className="p-2 border border-gray-600">{config.label}</td>
+                                {fields.map(field => (
+                                    <td key={field} className="p-0 border border-gray-600">
+                                        <input
+                                            type="text"
+                                            value={rowData[field]}
+                                            onChange={(e) => onUpdate(config.category, field, e.target.value)}
+                                            disabled={isFinalized}
+                                            className="w-full h-full bg-transparent p-2 text-right border-none focus:ring-0 focus:outline-none focus:bg-gray-700/50"
+                                        />
+                                    </td>
+                                ))}
+                                 <td className="p-2 border border-gray-600 text-right font-mono bg-gray-800/50">{total.toLocaleString('en-IN', {minimumFractionDigits: 2})}</td>
+                            </tr>
+                        )
+                    })}
+                </tbody>
+            </table>
+        </div>
+    );
+};
+
+
+export const TradeReceivablesSchedule: React.FC<TradeReceivablesScheduleProps> = ({ title, data, onUpdate, isFinalized }) => {
+
+    const handleFieldUpdate = (field: keyof Omit<TradeReceivablesData, 'ageing'>, value: string) => {
+        onUpdate({ ...data, [field]: value });
     };
     
-    const parse = (val: string) => parseFloat(val.replace(/,/g, '')) || 0;
-    const totalOutstanding = parse(data.outstandingForMoreThan6Months.secured) + parse(data.outstandingForMoreThan6Months.unsecured) + parse(data.outstandingForMoreThan6Months.doubtful);
-    const totalOthers = parse(data.others.secured) + parse(data.others.unsecured) + parse(data.others.doubtful);
-    const totalGross = totalOutstanding + totalOthers;
-    const totalNet = totalGross - parse(data.provisionForDoubtful);
+    const handleAgeingUpdate = (category: TradeReceivablesAgeingRow['category'], field: keyof Omit<TradeReceivablesAgeingRow, 'category'>, value: string) => {
+        onUpdate({
+            ...data,
+            ageing: data.ageing.map(row => 
+                row.category === category ? { ...row, [field]: value } : row
+            )
+        });
+    };
+    
 
     return (
         <div className="space-y-6">
-            <h3 className="text-lg font-semibold text-white">Trade Receivables Schedule</h3>
-            
-            <div className="p-4 bg-gray-900/50 rounded-lg space-y-4">
-                <h4 className="font-semibold text-gray-300">Outstanding for more than 6 months</h4>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <InputField label="Considered good - Secured" value={data.outstandingForMoreThan6Months.secured} onChange={v => handleUpdate('outstandingForMoreThan6Months', 'secured', v)} disabled={isFinalized} />
-                    <InputField label="Considered good - Unsecured" value={data.outstandingForMoreThan6Months.unsecured} onChange={v => handleUpdate('outstandingForMoreThan6Months', 'unsecured', v)} disabled={isFinalized} />
-                    <InputField label="Considered doubtful" value={data.outstandingForMoreThan6Months.doubtful} onChange={v => handleUpdate('outstandingForMoreThan6Months', 'doubtful', v)} disabled={isFinalized} />
-                </div>
-            </div>
-
-            <div className="p-4 bg-gray-900/50 rounded-lg space-y-4">
-                <h4 className="font-semibold text-gray-300">Other Receivables</h4>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <InputField label="Considered good - Secured" value={data.others.secured} onChange={v => handleUpdate('others', 'secured', v)} disabled={isFinalized} />
-                    <InputField label="Considered good - Unsecured" value={data.others.unsecured} onChange={v => handleUpdate('others', 'unsecured', v)} disabled={isFinalized} />
-                    <InputField label="Considered doubtful" value={data.others.doubtful} onChange={v => handleUpdate('others', 'doubtful', v)} disabled={isFinalized} />
-                </div>
-            </div>
+            <h3 className="text-lg font-semibold text-white">{title} Schedule</h3>
 
             <div className="p-4 bg-gray-900/50 rounded-lg">
-                <InputField label="Less: Provision for doubtful receivables" value={data.provisionForDoubtful} onChange={handleProvisionUpdate} disabled={isFinalized} />
+                <h4 className="font-semibold text-gray-300 mb-2">Classification</h4>
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                    <InputField label="Secured, considered good" value={data.securedGood} onChange={(v) => handleFieldUpdate('securedGood', v)} disabled={isFinalized} />
+                    <InputField label="Unsecured, considered good" value={data.unsecuredGood} onChange={(v) => handleFieldUpdate('unsecuredGood', v)} disabled={isFinalized} />
+                    <InputField label="Doubtful" value={data.doubtful} onChange={(v) => handleFieldUpdate('doubtful', v)} disabled={isFinalized} />
+                     <InputField label="Less: Provision" value={data.provisionForDoubtful} onChange={(v) => handleFieldUpdate('provisionForDoubtful', v)} disabled={isFinalized} />
+                </div>
             </div>
 
-            <div className="mt-4 p-4 bg-gray-900/50 rounded-lg text-sm">
-                <h4 className="font-bold text-gray-300">Summary</h4>
-                 <div className="flex justify-between mt-2 pt-2 border-t border-gray-600">
-                    <span>Total Gross Receivables:</span>
-                    <span className="font-mono">{totalGross.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span>
-                </div>
-                <div className="flex justify-between">
-                    <span>Total Net Receivables:</span>
-                    <span className="font-mono font-bold">{totalNet.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span>
-                </div>
-            </div>
+            <AgeingTable ageingData={data.ageing} onUpdate={handleAgeingUpdate} isFinalized={isFinalized} />
+
         </div>
     );
 };

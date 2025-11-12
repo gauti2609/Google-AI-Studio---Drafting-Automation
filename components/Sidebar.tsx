@@ -1,6 +1,4 @@
 
-
-
 import React from 'react';
 // FIX: Add file extensions to fix module resolution errors.
 import { Page } from '../types.ts';

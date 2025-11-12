@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 // FIX: Add file extensions to fix module resolution errors.
@@ -6,7 +7,9 @@ import { MappingWorkbench } from './components/MappingWorkbench.tsx';
 import { SchedulesPage } from './pages/SchedulesPage.tsx';
 import { NotesSelectionPage } from './pages/NotesSelectionPage.tsx';
 import { ReportsPage } from './pages/ReportsPage.tsx';
+// FIX: Add file extension to fix module resolution error.
 import { Page, TrialBalanceItem, Masters, ScheduleData, AllData } from './types.ts';
+// FIX: Add file extension to fix module resolution error.
 import { mockMasters, initialScheduleData } from './data/mockData.ts';
 import { useLocalStorage } from './hooks/useLocalStorage.ts';
 

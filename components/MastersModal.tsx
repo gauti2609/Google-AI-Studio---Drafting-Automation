@@ -1,7 +1,5 @@
 
-
-
-import React, { useState } from 'react';
+import React from 'react';
 // FIX: Add file extensions to fix module resolution errors.
 import { Masters, MajorHead, MinorHead, Grouping } from '../types.ts';
 import { CloseIcon } from './icons.tsx';

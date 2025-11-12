@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 // FIX: Add file extensions to fix module resolution errors.
 import { TrialBalanceItem, Masters, MappingSuggestion } from '../types.ts';

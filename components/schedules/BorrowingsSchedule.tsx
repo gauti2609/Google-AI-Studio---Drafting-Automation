@@ -1,73 +1,74 @@
-
 import React from 'react';
 import { v4 as uuidv4 } from 'uuid';
-// FIX: Add file extension to fix module resolution error.
-import { BorrowingsData, ScheduleData } from '../../types.ts';
+import { BorrowingsData, ScheduleData, BorrowingItem } from '../../types.ts';
 import { PlusIcon, TrashIcon } from '../icons.tsx';
 
 interface BorrowingsScheduleProps {
-    data: BorrowingsData[];
+    data: BorrowingsData;
     onUpdate: React.Dispatch<React.SetStateAction<ScheduleData>>;
     isFinalized: boolean;
 }
 
+const BorrowingTable: React.FC<{
+    title: string;
+    items: BorrowingItem[];
+    type: 'longTerm' | 'shortTerm';
+    onUpdate: (type: 'longTerm' | 'shortTerm', id: string, field: keyof Omit<BorrowingItem, 'id'>, value: string | boolean) => void;
+    onAdd: (type: 'longTerm' | 'shortTerm') => void;
+    onRemove: (type: 'longTerm' | 'shortTerm', id: string) => void;
+    isFinalized: boolean;
+}> = ({ title, items, type, onUpdate, onAdd, onRemove, isFinalized }) => (
+    <div>
+        <h4 className="text-md font-semibold text-gray-300 mb-2">{title}</h4>
+        <div className="space-y-2">
+            {items.map(item => (
+                <div key={item.id} className="grid grid-cols-12 gap-2 items-center bg-gray-900/50 p-2 rounded-lg">
+                    <input type="text" placeholder="Nature of Borrowing" value={item.nature} onChange={e => onUpdate(type, item.id, 'nature', e.target.value)} disabled={isFinalized} className="col-span-4 bg-gray-700 p-2 rounded-md"/>
+                    <input type="text" placeholder="Amount (CY)" value={item.amountCy} onChange={e => onUpdate(type, item.id, 'amountCy', e.target.value)} disabled={isFinalized} className="col-span-2 bg-gray-700 p-2 rounded-md"/>
+                    <input type="text" placeholder="Amount (PY)" value={item.amountPy} onChange={e => onUpdate(type, item.id, 'amountPy', e.target.value)} disabled={isFinalized} className="col-span-2 bg-gray-700 p-2 rounded-md"/>
+                    <input type="text" placeholder="Repayment Terms" value={item.repaymentTerms} onChange={e => onUpdate(type, item.id, 'repaymentTerms', e.target.value)} disabled={isFinalized} className="col-span-3 bg-gray-700 p-2 rounded-md"/>
+                    {!isFinalized && <button onClick={() => onRemove(type, item.id)} className="p-2 text-gray-400 hover:text-red-400 col-span-1"><TrashIcon className="w-5 h-5"/></button>}
+                </div>
+            ))}
+        </div>
+        {!isFinalized && <button onClick={() => onAdd(type)} className="mt-2 flex items-center text-sm text-brand-blue-light hover:text-white"><PlusIcon className="w-4 h-4 mr-1"/> Add Borrowing</button>}
+    </div>
+);
+
 export const BorrowingsSchedule: React.FC<BorrowingsScheduleProps> = ({ data, onUpdate, isFinalized }) => {
+
+    const handleUpdate = (type: 'longTerm' | 'shortTerm', id: string, field: keyof Omit<BorrowingItem, 'id'>, value: string | boolean) => {
+        onUpdate(prev => ({ ...prev, borrowings: { ...prev.borrowings, [type]: prev.borrowings[type].map(item => item.id === id ? { ...item, [field]: value } : item) }}));
+    };
+
+    const handleFieldUpdate = (field: keyof BorrowingsData, value: string) => {
+        onUpdate(prev => ({...prev, borrowings: {...prev.borrowings, [field]: value}}))
+    };
+
+    const addRow = (type: 'longTerm' | 'shortTerm') => {
+        const newRow: BorrowingItem = { id: uuidv4(), nature: '', isSecured: false, currency: 'INR', amountCy: '', amountPy: '', repaymentTerms: '' };
+        onUpdate(prev => ({ ...prev, borrowings: { ...prev.borrowings, [type]: [...prev.borrowings[type], newRow] }}));
+    };
+
+    const removeRow = (type: 'longTerm' | 'shortTerm', id: string) => {
+        onUpdate(prev => ({ ...prev, borrowings: { ...prev.borrowings, [type]: prev.borrowings[type].filter(item => item.id !== id) }}));
+    };
     
-    const handleUpdate = (id: string, field: keyof Omit<BorrowingsData, 'id'>, value: string | boolean) => {
-        onUpdate(prev => ({ ...prev, borrowings: prev.borrowings.map(b => b.id === id ? { ...b, [field]: value } : b) }));
-    };
-
-    const addRow = () => {
-        const newRow: BorrowingsData = { id: uuidv4(), lender: '', isSecured: false, amountCy: '', amountPy: '', isCurrent: true };
-        onUpdate(prev => ({ ...prev, borrowings: [...prev.borrowings, newRow] }));
-    };
-
-    const removeRow = (id: string) => {
-        onUpdate(prev => ({ ...prev, borrowings: prev.borrowings.filter(b => b.id !== id) }));
-    };
-
     return (
-        <div className="space-y-4">
+        <div className="space-y-6">
             <h3 className="text-lg font-semibold text-white">Borrowings Schedule</h3>
-            <div className="space-y-2">
-                {data.map(item => (
-                    <div key={item.id} className="grid grid-cols-1 md:grid-cols-6 gap-4 items-center bg-gray-900/50 p-3 rounded-lg">
-                        <div className="md:col-span-2">
-                             <label className="block text-xs font-medium text-gray-400">Lender</label>
-                            <input type="text" value={item.lender} onChange={e => handleUpdate(item.id, 'lender', e.target.value)} disabled={isFinalized} className="w-full bg-gray-700 p-2 rounded-md mt-1" />
-                        </div>
-                         <div>
-                            <label className="block text-xs font-medium text-gray-400">Amount (CY)</label>
-                            <input type="text" value={item.amountCy} onChange={e => handleUpdate(item.id, 'amountCy', e.target.value)} disabled={isFinalized} className="w-full bg-gray-700 p-2 rounded-md mt-1" />
-                        </div>
-                        <div>
-                            <label className="block text-xs font-medium text-gray-400">Amount (PY)</label>
-                            <input type="text" value={item.amountPy} onChange={e => handleUpdate(item.id, 'amountPy', e.target.value)} disabled={isFinalized} className="w-full bg-gray-700 p-2 rounded-md mt-1" />
-                        </div>
-                        <div className="flex items-center space-x-4">
-                            <label className="flex items-center text-sm text-gray-300 mt-5">
-                                <input type="checkbox" checked={item.isSecured} onChange={e => handleUpdate(item.id, 'isSecured', e.target.checked)} disabled={isFinalized} className="h-4 w-4 rounded bg-gray-700 border-gray-600 text-brand-blue focus:ring-brand-blue" />
-                                <span className="ml-2">Secured</span>
-                            </label>
-                             <label className="flex items-center text-sm text-gray-300 mt-5">
-                                <input type="checkbox" checked={item.isCurrent} onChange={e => handleUpdate(item.id, 'isCurrent', e.target.checked)} disabled={isFinalized} className="h-4 w-4 rounded bg-gray-700 border-gray-600 text-brand-blue focus:ring-brand-blue" />
-                                <span className="ml-2">Current</span>
-                            </label>
-                        </div>
-                         {!isFinalized && (
-                            <button onClick={() => removeRow(item.id)} className="p-2 text-gray-400 hover:text-red-400 rounded-md hover:bg-red-500/10 transition-colors mt-5">
-                                <TrashIcon className="w-5 h-5" />
-                            </button>
-                        )}
-                    </div>
-                ))}
+            <BorrowingTable title="Long-Term Borrowings" items={data.longTerm} type="longTerm" onUpdate={handleUpdate} onAdd={addRow} onRemove={removeRow} isFinalized={isFinalized} />
+            <BorrowingTable title="Short-Term Borrowings" items={data.shortTerm} type="shortTerm" onUpdate={handleUpdate} onAdd={addRow} onRemove={removeRow} isFinalized={isFinalized} />
+            <div>
+                <label className="block text-sm font-medium text-gray-400">Particulars of any redeemed bonds/debentures which the company has power to reissue</label>
+                 <input
+                    type="text"
+                    value={data.reissuableBonds}
+                    onChange={(e) => handleFieldUpdate('reissuableBonds', e.target.value)}
+                    disabled={isFinalized}
+                    className="mt-1 block w-full bg-gray-700 border border-gray-600 rounded-md p-2 text-white disabled:bg-gray-800"
+                />
             </div>
-             {!isFinalized && (
-                <button onClick={addRow} className="mt-4 flex items-center text-sm text-brand-blue-light hover:text-white transition-colors font-medium">
-                    <PlusIcon className="w-4 h-4 mr-2" />
-                    Add Borrowing
-                </button>
-            )}
         </div>
     );
 };

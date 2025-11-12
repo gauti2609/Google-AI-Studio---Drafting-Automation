@@ -1,6 +1,5 @@
 
 
-
 import React from 'react';
 // FIX: Add file extension to fix module resolution error.
 import { RelatedPartyData } from '../../../types.ts';

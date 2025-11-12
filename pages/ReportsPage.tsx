@@ -1,11 +1,16 @@
+
+
 import React, { useState } from 'react';
 // FIX: Add file extensions to fix module resolution errors.
 import { AllData } from '../types.ts';
+// FIX: Add file extension to fix module resolution error.
 import { BalanceSheet } from '../components/reports/BalanceSheet.tsx';
 import { ProfitAndLossStatement } from '../components/reports/ProfitAndLossStatement.tsx';
 import { CashFlowStatement } from '../components/reports/CashFlowStatement.tsx';
+// FIX: Add file extension to fix module resolution error.
 import { NotesToAccounts } from '../components/reports/NotesToAccounts.tsx';
 import { RatioAnalysis } from '../components/reports/RatioAnalysis.tsx';
+// FIX: Add file extension to fix module resolution error.
 import { exportToExcel } from '../services/exportService.ts';
 import { DownloadIcon } from '../components/icons.tsx';
 
@@ -17,6 +22,9 @@ type ReportView = 'bs' | 'pl' | 'cf' | 'notes' | 'ratios';
 
 export const ReportsPage: React.FC<ReportsPageProps> = ({ allData }) => {
     const [activeView, setActiveView] = useState<ReportView>('bs');
+    const { scheduleData } = allData;
+    const { roundingUnit, currencySymbol } = scheduleData.corporateInfo;
+    const unitText = roundingUnit.charAt(0).toUpperCase() + roundingUnit.slice(1);
 
     const renderReport = () => {
         switch(activeView) {
@@ -49,12 +57,17 @@ export const ReportsPage: React.FC<ReportsPageProps> = ({ allData }) => {
                     Export to Excel
                 </button>
             </header>
-            <div className="flex border-b border-gray-700">
-                {reportNav.map(item => (
-                     <button key={item.id} onClick={() => setActiveView(item.id as ReportView)} className={`px-4 py-2 text-sm font-medium transition-colors ${activeView === item.id ? 'border-b-2 border-brand-blue text-white' : 'text-gray-400 hover:text-white'}`}>
-                        {item.name}
-                    </button>
-                ))}
+            <div className="flex justify-between items-center border-b border-gray-700">
+                <div className="flex">
+                    {reportNav.map(item => (
+                        <button key={item.id} onClick={() => setActiveView(item.id as ReportView)} className={`px-4 py-2 text-sm font-medium transition-colors ${activeView === item.id ? 'border-b-2 border-brand-blue text-white' : 'text-gray-400 hover:text-white'}`}>
+                            {item.name}
+                        </button>
+                    ))}
+                </div>
+                <div className="pr-4 text-sm text-gray-400 italic">
+                    All amounts in {currencySymbol} {unitText}, unless otherwise stated
+                </div>
             </div>
             <main className="flex-1 bg-gray-800 p-6 rounded-lg border border-gray-700 overflow-y-auto">
                 {renderReport()}

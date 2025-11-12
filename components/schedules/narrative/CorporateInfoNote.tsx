@@ -1,9 +1,7 @@
 
-
-
 import React from 'react';
 // FIX: Add file extension to fix module resolution error.
-import { CorporateInfoData, ScheduleData } from '../../../types.ts';
+import { CorporateInfoData, ScheduleData, RoundingUnit } from '../../../types.ts';
 
 interface CorporateInfoNoteProps {
     data: CorporateInfoData;
@@ -65,6 +63,15 @@ export const CorporateInfoNote: React.FC<CorporateInfoNoteProps> = ({ data, onUp
         );
     }
 
+    const roundingOptions: { value: RoundingUnit, label: string }[] = [
+        { value: 'ones', label: 'Ones' },
+        { value: 'hundreds', label: 'Hundreds' },
+        { value: 'thousands', label: 'Thousands' },
+        { value: 'lakhs', label: 'Lakhs' },
+        { value: 'millions', label: 'Millions' },
+        { value: 'crores', label: 'Crores' },
+    ];
+
     return (
         <div className="space-y-4">
              <h3 className="text-lg font-semibold text-white">Corporate Information</h3>
@@ -72,6 +79,16 @@ export const CorporateInfoNote: React.FC<CorporateInfoNoteProps> = ({ data, onUp
              <InputField label="Corporate Identification Number (CIN)" value={data.cin} onChange={v => handleUpdate('cin', v)} disabled={isFinalized} />
              <InputField label="Date of Incorporation" value={data.incorporationDate} onChange={v => handleUpdate('incorporationDate', v)} disabled={isFinalized} />
              <InputField label="Registered Office Address" value={data.registeredOffice} onChange={v => handleUpdate('registeredOffice', v)} disabled={isFinalized} />
+             <div className="grid grid-cols-3 gap-4 items-center">
+                 <label className="block text-sm font-medium text-gray-400 col-span-1">Currency Symbol</label>
+                 <input type="text" value={data.currencySymbol} onChange={e => handleUpdate('currencySymbol', e.target.value)} disabled={isFinalized} className="mt-1 block w-full bg-gray-700 border border-gray-600 rounded-md p-2 text-white disabled:bg-gray-800 col-span-2" />
+             </div>
+             <div className="grid grid-cols-3 gap-4 items-center">
+                <label className="block text-sm font-medium text-gray-400 col-span-1">Rounding Unit for Reports</label>
+                <select value={data.roundingUnit} onChange={e => handleUpdate('roundingUnit', e.target.value)} disabled={isFinalized} className="mt-1 block w-full bg-gray-700 border border-gray-600 rounded-md p-2 text-white disabled:bg-gray-800 col-span-2">
+                    {roundingOptions.map(opt => <option key={opt.value} value={opt.value}>{opt.label}</option>)}
+                </select>
+             </div>
         </div>
     );
 };

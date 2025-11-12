@@ -1,7 +1,4 @@
 
-
-
-
 import { GoogleGenAI, Type } from "@google/genai";
 // FIX: Add file extension to fix module resolution error.
 import { MajorHead, MinorHead, Grouping, MappingSuggestion } from '../types.ts';

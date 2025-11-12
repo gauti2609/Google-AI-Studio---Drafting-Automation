@@ -1,3 +1,4 @@
+
 import React from 'react';
 // FIX: Add file extensions to fix module resolution errors.
 import { AllData, ScheduleData } from '../types.ts';

@@ -1,49 +1,47 @@
-
-
-
 import React from 'react';
 import { v4 as uuidv4 } from 'uuid';
-// FIX: Add file extension to fix module resolution error.
-import { PpeRow, ScheduleData } from '../../types.ts';
+import { PpeAssetRow } from '../../types.ts';
 import { PlusIcon, TrashIcon } from '../icons.tsx';
 
 interface PPEScheduleProps {
-    data: PpeRow[];
-    onUpdate: React.Dispatch<React.SetStateAction<ScheduleData>>;
+    ppeData: PpeAssetRow[];
+    onUpdate: (data: PpeAssetRow[]) => void;
     isFinalized: boolean;
 }
 
-export const PPESchedule: React.FC<PPEScheduleProps> = ({ data, onUpdate, isFinalized }) => {
+export const PPESchedule: React.FC<PPEScheduleProps> = ({ ppeData, onUpdate, isFinalized }) => {
 
-    const handleUpdate = (id: string, field: keyof Omit<PpeRow, 'id'>, value: string) => {
-        onUpdate(prev => ({ ...prev, ppe: prev.ppe.map(row => row.id === id ? { ...row, [field]: value } : row) }));
+    const handleUpdate = (id: string, field: keyof Omit<PpeAssetRow, 'id'>, value: string | boolean) => {
+        onUpdate(ppeData.map(row => row.id === id ? { ...row, [field]: value } : row));
     };
 
     const addRow = () => {
-        const newRow: PpeRow = {
-            id: uuidv4(), classOfAsset: '', grossBlockOpening: '', grossBlockAdditions: '', grossBlockDisposals: '',
-            depreciationOpening: '', depreciationForYear: '', depreciationOnDisposals: ''
+        const newRow: PpeAssetRow = {
+            id: uuidv4(),
+            assetClass: '',
+            isUnderLease: false,
+            grossBlockOpening: '0',
+            grossBlockAdditions: '0',
+            grossBlockDisposals: '0',
+            grossBlockClosing: '0',
+            depreciationOpening: '0',
+            depreciationForYear: '0',
+            depreciationOnDisposals: '0',
+            depreciationClosing: '0',
+            netBlockClosing: '0',
         };
-        onUpdate(prev => ({ ...prev, ppe: [...prev.ppe, newRow] }));
+        onUpdate([...ppeData, newRow]);
     };
 
     const removeRow = (id: string) => {
-        onUpdate(prev => ({ ...prev, ppe: prev.ppe.filter(row => row.id !== id) }));
+        onUpdate(ppeData.filter(row => row.id !== id));
     };
 
-    const renderHeader = (title: string, colSpan: number) => (
-        <th colSpan={colSpan} className="p-2 text-center font-medium border-l border-gray-600">{title}</th>
-    );
-
-    const renderSubHeader = (title: string) => (
-        <th className="p-2 text-left font-medium border-t border-gray-600 min-w-[120px]">{title}</th>
-    );
-    
-    const renderCell = (row: PpeRow, field: keyof Omit<PpeRow, 'id'>) => (
-        <td className="p-0">
+    const renderCell = (row: PpeAssetRow, field: keyof Omit<PpeAssetRow, 'id' | 'assetClass' | 'isUnderLease' | 'grossBlockClosing' | 'depreciationClosing' | 'netBlockClosing'>) => (
+        <td className="p-0 border border-gray-600">
             <input
                 type="text"
-                value={row[field]}
+                value={row[field] as string}
                 onChange={e => handleUpdate(row.id, field, e.target.value)}
                 disabled={isFinalized}
                 className="w-full h-full bg-transparent p-2 text-right border-none focus:ring-0 focus:outline-none focus:bg-gray-700/50"
@@ -53,57 +51,55 @@ export const PPESchedule: React.FC<PPEScheduleProps> = ({ data, onUpdate, isFina
 
     return (
         <div className="space-y-4">
-            <h3 className="text-lg font-semibold text-white">Property, Plant and Equipment Schedule</h3>
+            <h3 className="text-lg font-semibold text-white">Property, Plant and Equipment (PPE) Schedule</h3>
             <div className="overflow-x-auto">
-                <table className="min-w-full text-sm border border-gray-600">
+                <table className="min-w-full text-xs border-collapse border border-gray-600">
                     <thead className="bg-gray-700/50">
                         <tr>
-                            <th rowSpan={2} className="p-2 text-left font-medium w-1/4">Class of Asset</th>
-                            {renderHeader('Gross Block', 3)}
-                            {renderHeader('Depreciation', 3)}
-                            <th rowSpan={2} className="p-2 text-left font-medium border-l border-gray-600">Net Block (CY)</th>
+                            <th rowSpan={2} className="p-2 text-left font-medium border border-gray-600 w-1/4">Asset Class</th>
+                            <th colSpan={4} className="p-2 text-center font-medium border border-gray-600">Gross Block</th>
+                            <th colSpan={4} className="p-2 text-center font-medium border border-gray-600">Accumulated Depreciation</th>
+                            <th rowSpan={2} className="p-2 text-right font-medium border border-gray-600">Net Block</th>
                         </tr>
                         <tr>
-                            {renderSubHeader('Opening')}
-                            {renderSubHeader('Additions')}
-                            {renderSubHeader('Disposals')}
-                            {renderSubHeader('Opening')}
-                            {renderSubHeader('For the Year')}
-                            {renderSubHeader('On Disposals')}
+                            <th className="p-2 text-right font-medium border border-gray-600">Opening</th>
+                            <th className="p-2 text-right font-medium border border-gray-600">Additions</th>
+                            <th className="p-2 text-right font-medium border border-gray-600">Disposals</th>
+                            <th className="p-2 text-right font-medium border border-gray-600">Closing</th>
+                            <th className="p-2 text-right font-medium border border-gray-600">Opening</th>
+                            <th className="p-2 text-right font-medium border border-gray-600">For the Year</th>
+                            <th className="p-2 text-right font-medium border border-gray-600">On Disposals</th>
+                            <th className="p-2 text-right font-medium border border-gray-600">Closing</th>
                         </tr>
                     </thead>
-                    <tbody className="divide-y divide-gray-600">
-                        {data.map(row => {
-                             const parse = (val: string) => parseFloat(val.replace(/,/g, '')) || 0;
-                             const grossClosing = parse(row.grossBlockOpening) + parse(row.grossBlockAdditions) - parse(row.grossBlockDisposals);
-                             const depClosing = parse(row.depreciationOpening) + parse(row.depreciationForYear) - parse(row.depreciationOnDisposals);
-                             const netClosing = grossClosing - depClosing;
+                    <tbody>
+                        {ppeData.map(row => {
+                            const parse = (val: string) => parseFloat(val.replace(/,/g, '')) || 0;
+                            const grossClosing = parse(row.grossBlockOpening) + parse(row.grossBlockAdditions) - parse(row.grossBlockDisposals);
+                            const depClosing = parse(row.depreciationOpening) + parse(row.depreciationForYear) - parse(row.depreciationOnDisposals);
+                            const netClosing = grossClosing - depClosing;
 
                             return (
                                 <tr key={row.id} className="hover:bg-gray-700/30">
-                                    <td className="p-0 flex items-center">
-                                        {!isFinalized && 
-                                            <button onClick={() => removeRow(row.id)} className="p-2 text-gray-500 hover:text-red-400">
-                                                <TrashIcon className="w-4 h-4"/>
-                                            </button>
-                                        }
-                                        <input
-                                            type="text"
-                                            value={row.classOfAsset}
-                                            onChange={e => handleUpdate(row.id, 'classOfAsset', e.target.value)}
-                                            disabled={isFinalized}
-                                            className="w-full bg-transparent p-2 border-none focus:ring-0 focus:outline-none focus:bg-gray-700/50"
-                                            />
+                                    <td className="p-0 border border-gray-600">
+                                        <div className="flex items-center">
+                                            {!isFinalized && <button onClick={() => removeRow(row.id)} className="p-2 text-gray-500 hover:text-red-400"><TrashIcon className="w-4 h-4"/></button>}
+                                            <input type="text" value={row.assetClass} onChange={e => handleUpdate(row.id, 'assetClass', e.target.value)} disabled={isFinalized} className="flex-1 bg-transparent p-2 border-none focus:ring-0 focus:outline-none focus:bg-gray-700/50" placeholder="e.g., Buildings"/>
+                                            <div className="flex items-center pr-2">
+                                                <input type="checkbox" checked={row.isUnderLease} onChange={e => handleUpdate(row.id, 'isUnderLease', e.target.checked)} disabled={isFinalized} className="h-4 w-4 rounded bg-gray-600 border-gray-500 text-brand-blue focus:ring-brand-blue"/>
+                                                <label className="ml-2 text-xs text-gray-400">Leased</label>
+                                            </div>
+                                        </div>
                                     </td>
                                     {renderCell(row, 'grossBlockOpening')}
                                     {renderCell(row, 'grossBlockAdditions')}
                                     {renderCell(row, 'grossBlockDisposals')}
+                                    <td className="p-2 border border-gray-600 text-right font-mono bg-gray-800/50">{grossClosing.toLocaleString('en-IN', {minimumFractionDigits: 2})}</td>
                                     {renderCell(row, 'depreciationOpening')}
                                     {renderCell(row, 'depreciationForYear')}
                                     {renderCell(row, 'depreciationOnDisposals')}
-                                    <td className="p-2 text-right font-mono bg-gray-800/50">
-                                        {netClosing.toLocaleString('en-IN', {minimumFractionDigits: 2, maximumFractionDigits: 2})}
-                                    </td>
+                                    <td className="p-2 border border-gray-600 text-right font-mono bg-gray-800/50">{depClosing.toLocaleString('en-IN', {minimumFractionDigits: 2})}</td>
+                                    <td className="p-2 border border-gray-600 text-right font-mono bg-gray-800/50">{netClosing.toLocaleString('en-IN', {minimumFractionDigits: 2})}</td>
                                 </tr>
                             );
                         })}

@@ -1,6 +1,4 @@
 
-
-
 import React, { useState, useCallback } from 'react';
 import { useDropzone } from 'react-dropzone';
 // FIX: Add file extensions to fix module resolution errors.
