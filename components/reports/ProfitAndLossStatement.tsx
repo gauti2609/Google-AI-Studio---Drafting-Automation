@@ -1,7 +1,7 @@
-
 import React from 'react';
 import { AllData } from '../../types.ts';
 import { formatNumber } from '../../utils/formatNumber.ts';
+import { getNoteNumberMap } from '../../utils/noteUtils.ts';
 
 interface ReportProps {
   allData: AllData;
@@ -31,9 +31,11 @@ const ReportRow: React.FC<{ label: string; note?: string; valueCy?: number; valu
 
 export const ProfitAndLossStatement: React.FC<ReportProps> = ({ allData }) => {
     const { trialBalanceData, scheduleData } = allData;
-    const { roundingUnit } = scheduleData.corporateInfo;
+    const { roundingUnit, entityType } = scheduleData.entityInfo;
     const format = (num: number) => formatNumber(num, roundingUnit);
     const parse = (val: string) => parseFloat(String(val).replace(/,/g, '')) || 0;
+    
+    const noteNumberMap = getNoteNumberMap(scheduleData.noteSelections);
 
     const getTBTotal = (groupingCode: string, year: 'cy' | 'py') => {
         const key = year === 'cy' ? 'closingCy' : 'closingPy';
@@ -51,28 +53,59 @@ export const ProfitAndLossStatement: React.FC<ReportProps> = ({ allData }) => {
     const totalIncomePy = revenuePy + otherIncomePy;
 
     // --- EXPENSES ---
-    const purchasesCy = getTBTotal('C.20.02', 'cy');
-    const purchasesPy = getTBTotal('C.20.02', 'py');
-    const employeeBenefitsCy = getTBTotal('C.20.04', 'cy');
-    const employeeBenefitsPy = getTBTotal('C.20.04', 'py');
-    const financeCostsCy = getTBTotal('C.20.05', 'cy');
-    const financeCostsPy = getTBTotal('C.20.05', 'py');
-    const otherExpensesCy = getTBTotal('C.20.07', 'cy');
-    const otherExpensesPy = getTBTotal('C.20.07', 'py');
-    const depreciationCy = scheduleData.ppe.reduce((sum, row) => sum + parse(row.depreciationForYear), 0) +
-                         scheduleData.intangibleAssets.reduce((sum, row) => sum + parse(row.depreciationForYear), 0);
-    const depreciationPy = 0; // PY schedule data not implemented
+    const openingStockMaterialsCy = scheduleData.costOfMaterialsConsumed.opening.reduce((s, i) => s + parse(i.amountCy), 0);
+    const closingStockMaterialsCy = scheduleData.costOfMaterialsConsumed.closing.reduce((s, i) => s + parse(i.amountCy), 0);
+    const purchasesMaterialsCy = getTBTotal('C.20.01', 'cy'); // Assuming C.20.01 is now for material purchases
+    const costOfMaterialsConsumedCy = openingStockMaterialsCy + purchasesMaterialsCy - closingStockMaterialsCy;
     
-    const totalExpensesCy = purchasesCy + employeeBenefitsCy + financeCostsCy + otherExpensesCy + depreciationCy;
-    const totalExpensesPy = purchasesPy + employeeBenefitsPy + financeCostsPy + otherExpensesPy + depreciationPy;
+    const purchasesStockInTradeCy = getTBTotal('C.20.02', 'cy');
+    
+    const openingInventoriesCy = scheduleData.changesInInventories.opening.reduce((s, i) => s + parse(i.amountCy), 0);
+    const closingInventoriesCy = scheduleData.changesInInventories.closing.reduce((s, i) => s + parse(i.amountCy), 0);
+    const changesInInventoriesCy = openingInventoriesCy - closingInventoriesCy;
+
+    const employeeBenefitsCy = getTBTotal('C.20.04', 'cy');
+    const financeCostsCy = getTBTotal('C.20.05', 'cy');
+    const otherExpensesCy = getTBTotal('C.20.07', 'cy');
+    const depreciationCy = scheduleData.ppe.assets.reduce((sum, row) => sum + parse(row.depreciationForYear), 0) +
+                         scheduleData.intangibleAssets.assets.reduce((sum, row) => sum + parse(row.depreciationForYear), 0);
+    
+    // PY values are placeholders
+    const costOfMaterialsConsumedPy = 0;
+    const purchasesStockInTradePy = 0;
+    const changesInInventoriesPy = 0;
+    const employeeBenefitsPy = getTBTotal('C.20.04', 'py');
+    const financeCostsPy = getTBTotal('C.20.05', 'py');
+    const otherExpensesPy = getTBTotal('C.20.07', 'py');
+    const depreciationPy = 0; 
+
+    // Treat Partners' Remuneration as an operating expense for LLPs/Non-Corporates
+    const partnersRemunerationCy = getTBTotal('C.20.11', 'cy');
+    const partnersRemunerationPy = getTBTotal('C.20.11', 'py');
+    const partnersRemunerationExpenseCy = entityType !== 'Company' ? partnersRemunerationCy : 0;
+    const partnersRemunerationExpensePy = entityType !== 'Company' ? partnersRemunerationPy : 0;
+    
+    const totalExpensesCy = costOfMaterialsConsumedCy + purchasesStockInTradeCy + changesInInventoriesCy + employeeBenefitsCy + financeCostsCy + otherExpensesCy + depreciationCy + partnersRemunerationExpenseCy;
+    const totalExpensesPy = costOfMaterialsConsumedPy + purchasesStockInTradePy + changesInInventoriesPy + employeeBenefitsPy + financeCostsPy + otherExpensesPy + depreciationPy + partnersRemunerationExpensePy;
     
     // --- PROFIT ---
-    const profitBeforeTaxCy = totalIncomeCy - totalExpensesCy;
-    const profitBeforeTaxPy = totalIncomePy - totalExpensesPy;
+    const profitBeforeExceptionalCy = totalIncomeCy - totalExpensesCy;
+    const profitBeforeExceptionalPy = totalIncomePy - totalExpensesPy;
+    
+    const exceptionalItemsCy = scheduleData.exceptionalItems.filter(i => i.type === 'exceptional').reduce((s, i) => s + parse(i.amountCy), 0);
+    const exceptionalItemsPy = 0;
+    
+    const profitBeforeTaxCy = profitBeforeExceptionalCy - exceptionalItemsCy;
+    const profitBeforeTaxPy = profitBeforeExceptionalPy - exceptionalItemsPy;
+
     const taxCy = parse(scheduleData.taxExpense.currentTax) + parse(scheduleData.taxExpense.deferredTax);
     const taxPy = 0; // Not implemented
     const profitAfterTaxCy = profitBeforeTaxCy - taxCy;
     const profitAfterTaxPy = profitBeforeTaxPy - taxPy;
+    
+    // For LLPs/Non-Corporates, PAT is the amount transferred to partners' accounts.
+    const netProfitTransferredCy = profitAfterTaxCy;
+    const netProfitTransferredPy = profitAfterTaxPy;
     
     // --- EPS ---
     const shares = parse(scheduleData.eps.weightedAvgEquityShares);
@@ -88,30 +121,44 @@ export const ProfitAndLossStatement: React.FC<ReportProps> = ({ allData }) => {
                         <tr>
                             <th className="p-3 text-left font-medium w-1/2">Particulars</th>
                             <th className="p-3 text-center font-medium">Note No.</th>
-                            <th className="p-3 text-right font-medium">Current Year ({scheduleData.corporateInfo.currencySymbol})</th>
-                            <th className="p-3 text-right font-medium">Previous Year ({scheduleData.corporateInfo.currencySymbol})</th>
+                            <th className="p-3 text-right font-medium">Current Year ({scheduleData.entityInfo.currencySymbol})</th>
+                            <th className="p-3 text-right font-medium">Previous Year ({scheduleData.entityInfo.currencySymbol})</th>
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-700">
-                        <ReportRow label="I. Revenue from operations" note="16" valueCy={revenueCy} valuePy={revenuePy} formatFn={format} />
-                        <ReportRow label="II. Other income" note="17" valueCy={otherIncomeCy} valuePy={otherIncomePy} formatFn={format} />
+                        <ReportRow label="I. Revenue from operations" note={noteNumberMap['revenue']?.toString()} valueCy={revenueCy} valuePy={revenuePy} formatFn={format} />
+                        <ReportRow label="II. Other income" note={noteNumberMap['otherIncome']?.toString()} valueCy={otherIncomeCy} valuePy={otherIncomePy} formatFn={format} />
                         <ReportRow label="III. Total Income (I + II)" valueCy={totalIncomeCy} valuePy={totalIncomePy} isBold formatFn={format} />
 
                         <ReportRow label="IV. EXPENSES" isHeader formatFn={format} />
-                        <ReportRow label="Purchases of Stock-in-Trade" valueCy={purchasesCy} valuePy={purchasesPy} formatFn={format} />
-                        <ReportRow label="Employee benefits expense" note="20" valueCy={employeeBenefitsCy} valuePy={employeeBenefitsPy} formatFn={format} />
-                        <ReportRow label="Finance costs" note="21" valueCy={financeCostsCy} valuePy={financeCostsPy} formatFn={format} />
-                        <ReportRow label="Depreciation and amortisation expense" note="5, 6" valueCy={depreciationCy} valuePy={depreciationPy} formatFn={format} />
-                        <ReportRow label="Other expenses" note="22" valueCy={otherExpensesCy} valuePy={otherExpensesPy} formatFn={format} />
+                        <ReportRow label="Cost of materials consumed" note={noteNumberMap['cogs']?.toString()} valueCy={costOfMaterialsConsumedCy} valuePy={costOfMaterialsConsumedPy} formatFn={format} />
+                        <ReportRow label="Purchases of Stock-in-Trade" valueCy={purchasesStockInTradeCy} valuePy={purchasesStockInTradePy} formatFn={format} />
+                        <ReportRow label="Changes in inventories" note={noteNumberMap['changesInInv']?.toString()} valueCy={changesInInventoriesCy} valuePy={changesInInventoriesPy} formatFn={format} />
+                        <ReportRow label="Employee benefits expense" note={noteNumberMap['employee']?.toString()} valueCy={employeeBenefitsCy} valuePy={employeeBenefitsPy} formatFn={format} />
+                        <ReportRow label="Finance costs" note={noteNumberMap['finance']?.toString()} valueCy={financeCostsCy} valuePy={financeCostsPy} formatFn={format} />
+                        <ReportRow label="Depreciation and amortisation expense" note={`${noteNumberMap['ppe'] || ''}, ${noteNumberMap['intangible'] || ''}`} valueCy={depreciationCy} valuePy={depreciationPy} formatFn={format} />
+                        <ReportRow label="Other expenses" note={noteNumberMap['otherExpenses']?.toString()} valueCy={otherExpensesCy} valuePy={otherExpensesPy} formatFn={format} />
+                        {entityType !== 'Company' && (
+                            <ReportRow label="Partners' Remuneration" valueCy={partnersRemunerationCy} valuePy={partnersRemunerationPy} formatFn={format} />
+                        )}
                         <ReportRow label="Total Expenses" valueCy={totalExpensesCy} valuePy={totalExpensesPy} isBold formatFn={format} />
                         
-                        <ReportRow label="V. Profit before tax (III - IV)" valueCy={profitBeforeTaxCy} valuePy={profitBeforeTaxPy} isBold formatFn={format} />
-                        <ReportRow label="VI. Tax expense" note="23" valueCy={taxCy} valuePy={taxPy} formatFn={format} />
-                        <ReportRow label="VII. Profit for the period (V - VI)" valueCy={profitAfterTaxCy} valuePy={profitAfterTaxPy} isBold formatFn={format} />
+                        <ReportRow label="V. Profit before exceptional items and tax (III - IV)" valueCy={profitBeforeExceptionalCy} valuePy={profitBeforeExceptionalPy} isBold formatFn={format} />
+                        <ReportRow label="VI. Exceptional Items" valueCy={exceptionalItemsCy} valuePy={exceptionalItemsPy} formatFn={format} />
+                        
+                        <ReportRow label="VII. Profit before tax (V - VI)" valueCy={profitBeforeTaxCy} valuePy={profitBeforeTaxPy} isBold formatFn={format} />
+                        <ReportRow label="VIII. Tax expense" note={noteNumberMap['tax']?.toString()} valueCy={taxCy} valuePy={taxPy} formatFn={format} />
+                        <ReportRow label="IX. Profit (Loss) for the period (VII - VIII)" valueCy={profitAfterTaxCy} valuePy={profitAfterTaxPy} isBold formatFn={format} />
 
-                        <ReportRow label="VIII. Earnings per equity share (for continuing operation):" isHeader formatFn={format} />
-                        <ReportRow label="Basic (₹)" note="25" valueCy={basicEpsCy} valuePy={basicEpsPy} formatFn={format} />
-                        <ReportRow label="Diluted (₹)" note="25" valueCy={basicEpsCy} valuePy={basicEpsPy} formatFn={format} />
+                        {entityType === 'Company' ? (
+                            <>
+                                <ReportRow label="X. Earnings per equity share (for continuing operations)" isHeader formatFn={format} />
+                                <ReportRow label="Basic (₹)" note={noteNumberMap['eps']?.toString()} valueCy={basicEpsCy} valuePy={basicEpsPy} formatFn={format} isSub />
+                                <ReportRow label="Diluted (₹)" note={noteNumberMap['eps']?.toString()} valueCy={basicEpsCy} valuePy={basicEpsPy} formatFn={format} isSub />
+                            </>
+                        ) : (
+                            <ReportRow label="X. Net Profit transferred to Partners'/Owners' Account" valueCy={netProfitTransferredCy} valuePy={netProfitTransferredPy} isBold formatFn={format} />
+                        )}
                     </tbody>
                 </table>
             </div>

@@ -1,4 +1,3 @@
-
 import React from 'react';
 // FIX: Add file extension to fix module resolution error.
 import { AllData } from '../../types.ts';
@@ -36,7 +35,7 @@ const ReportRow: React.FC<{ label: string; valueCy?: number; valuePy?: number; i
 
 export const CashFlowStatement: React.FC<ReportProps> = ({ allData }) => {
     const { trialBalanceData, scheduleData } = allData;
-    const { roundingUnit } = scheduleData.corporateInfo;
+    const { roundingUnit } = scheduleData.entityInfo;
     const format = (num: number) => formatNumber(num, roundingUnit);
 
 
@@ -57,8 +56,9 @@ export const CashFlowStatement: React.FC<ReportProps> = ({ allData }) => {
     const employeeBenefitsCy = getTBTotal('C.20.04', 'cy');
     const financeCostsCy = getTBTotal('C.20.05', 'cy');
     const otherExpensesCy = getTBTotal('C.20.07', 'cy');
-    const depreciationCy = scheduleData.ppe.reduce((sum, row) => sum + parseNumeric(row.depreciationForYear), 0) +
-                         scheduleData.intangibleAssets.reduce((sum, row) => sum + parseNumeric(row.depreciationForYear), 0);
+    // FIX: Access the 'assets' array within the 'ppe' and 'intangibleAssets' objects before calling 'reduce'.
+    const depreciationCy = scheduleData.ppe.assets.reduce((sum, row) => sum + parseNumeric(row.depreciationForYear), 0) +
+                         scheduleData.intangibleAssets.assets.reduce((sum, row) => sum + parseNumeric(row.depreciationForYear), 0);
     const totalExpensesCy = purchasesCy + employeeBenefitsCy + financeCostsCy + otherExpensesCy + depreciationCy;
     const profitBeforeTaxCy = totalIncomeCy - totalExpensesCy;
     const taxCy = parseNumeric(scheduleData.taxExpense.currentTax) + parseNumeric(scheduleData.taxExpense.deferredTax);
@@ -80,13 +80,14 @@ export const CashFlowStatement: React.FC<ReportProps> = ({ allData }) => {
     const netCashFromOpsCy = cashFromOpsCy - taxCy;
 
     // --- CASH FLOW FROM INVESTING ACTIVITIES ---
-    const purchaseOfPpeCy = scheduleData.ppe.reduce((sum, row) => sum + parseNumeric(row.grossBlockAdditions), 0);
+    // FIX: Access the 'assets' array within the 'ppe' object before calling 'reduce'.
+    const purchaseOfPpeCy = scheduleData.ppe.assets.reduce((sum, row) => sum + parseNumeric(row.grossBlockAdditions), 0);
     const cashFromInvCy = -purchaseOfPpeCy;
     const cashFromInvPy = 0; // Incomplete
 
     // --- CASH FLOW FROM FINANCING ACTIVITIES ---
-    const shareCapitalCy = scheduleData.shareCapital.issued.reduce((sum, item) => sum + parseNumeric(item.amountCy), 0);
-    const shareCapitalPy = scheduleData.shareCapital.issued.reduce((sum, item) => sum + parseNumeric(item.amountPy), 0);
+    const shareCapitalCy = scheduleData.companyShareCapital.issued.reduce((sum, item) => sum + parseNumeric(item.amountCy), 0);
+    const shareCapitalPy = scheduleData.companyShareCapital.issued.reduce((sum, item) => sum + parseNumeric(item.amountPy), 0);
     const proceedsFromShareCapitalCy = shareCapitalCy - shareCapitalPy;
     const cashFromFinCy = proceedsFromShareCapitalCy;
     const cashFromFinPy = 0; // Incomplete
@@ -109,8 +110,8 @@ export const CashFlowStatement: React.FC<ReportProps> = ({ allData }) => {
                     <thead className="bg-gray-700/50">
                         <tr>
                             <th className="p-3 text-left font-medium w-2/3">Particulars</th>
-                            <th className="p-3 text-right font-medium">Current Year ({scheduleData.corporateInfo.currencySymbol})</th>
-                            <th className="p-3 text-right font-medium">Previous Year ({scheduleData.corporateInfo.currencySymbol})</th>
+                            <th className="p-3 text-right font-medium">Current Year ({scheduleData.entityInfo.currencySymbol})</th>
+                            <th className="p-3 text-right font-medium">Previous Year ({scheduleData.entityInfo.currencySymbol})</th>
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-700">

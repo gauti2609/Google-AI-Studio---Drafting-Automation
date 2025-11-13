@@ -1,18 +1,33 @@
 import React from 'react';
 import { v4 as uuidv4 } from 'uuid';
-import { PpeAssetRow } from '../../types.ts';
+import { PpeAssetRow, PpeScheduleData } from '../../types.ts';
 import { PlusIcon, TrashIcon } from '../icons.tsx';
 
 interface PPEScheduleProps {
-    ppeData: PpeAssetRow[];
-    onUpdate: (data: PpeAssetRow[]) => void;
+    data: PpeScheduleData;
+    onUpdate: (data: PpeScheduleData) => void;
     isFinalized: boolean;
 }
 
-export const PPESchedule: React.FC<PPEScheduleProps> = ({ ppeData, onUpdate, isFinalized }) => {
+const DisclosureInput: React.FC<{label: string, value: string, onChange: (v:string) => void, isFinalized: boolean}> = ({label, value, onChange, isFinalized}) => (
+    <div>
+        <label className="block text-sm font-medium text-gray-400">{label}</label>
+        <textarea
+            value={value}
+            onChange={e => onChange(e.target.value)}
+            disabled={isFinalized}
+            rows={2}
+            className="mt-1 block w-full bg-gray-900/50 p-2 rounded-md text-sm border border-gray-600 focus:ring-brand-blue focus:border-brand-blue"
+        />
+    </div>
+);
 
-    const handleUpdate = (id: string, field: keyof Omit<PpeAssetRow, 'id'>, value: string | boolean) => {
-        onUpdate(ppeData.map(row => row.id === id ? { ...row, [field]: value } : row));
+export const PPESchedule: React.FC<PPEScheduleProps> = ({ data, onUpdate, isFinalized }) => {
+    const { assets, commitments, pledgedAssets, borrowingCostsCapitalized } = data;
+
+    const handleAssetUpdate = (id: string, field: keyof Omit<PpeAssetRow, 'id'>, value: string | boolean) => {
+        const updatedAssets = assets.map(row => row.id === id ? { ...row, [field]: value } : row);
+        onUpdate({ ...data, assets: updatedAssets });
     };
 
     const addRow = () => {
@@ -28,13 +43,19 @@ export const PPESchedule: React.FC<PPEScheduleProps> = ({ ppeData, onUpdate, isF
             depreciationForYear: '0',
             depreciationOnDisposals: '0',
             depreciationClosing: '0',
+            impairmentLoss: '0',
+            impairmentReversal: '0',
             netBlockClosing: '0',
         };
-        onUpdate([...ppeData, newRow]);
+        onUpdate({ ...data, assets: [...assets, newRow]});
     };
 
     const removeRow = (id: string) => {
-        onUpdate(ppeData.filter(row => row.id !== id));
+        onUpdate({ ...data, assets: assets.filter(row => row.id !== id) });
+    };
+
+    const handleFieldUpdate = (field: 'commitments' | 'pledgedAssets' | 'borrowingCostsCapitalized', value: string) => {
+        onUpdate({ ...data, [field]: value });
     };
 
     const renderCell = (row: PpeAssetRow, field: keyof Omit<PpeAssetRow, 'id' | 'assetClass' | 'isUnderLease' | 'grossBlockClosing' | 'depreciationClosing' | 'netBlockClosing'>) => (
@@ -42,7 +63,7 @@ export const PPESchedule: React.FC<PPEScheduleProps> = ({ ppeData, onUpdate, isF
             <input
                 type="text"
                 value={row[field] as string}
-                onChange={e => handleUpdate(row.id, field, e.target.value)}
+                onChange={e => handleAssetUpdate(row.id, field, e.target.value)}
                 disabled={isFinalized}
                 className="w-full h-full bg-transparent p-2 text-right border-none focus:ring-0 focus:outline-none focus:bg-gray-700/50"
             />
@@ -59,6 +80,7 @@ export const PPESchedule: React.FC<PPEScheduleProps> = ({ ppeData, onUpdate, isF
                             <th rowSpan={2} className="p-2 text-left font-medium border border-gray-600 w-1/4">Asset Class</th>
                             <th colSpan={4} className="p-2 text-center font-medium border border-gray-600">Gross Block</th>
                             <th colSpan={4} className="p-2 text-center font-medium border border-gray-600">Accumulated Depreciation</th>
+                            <th colSpan={2} className="p-2 text-center font-medium border border-gray-600">Impairment (AS 28)</th>
                             <th rowSpan={2} className="p-2 text-right font-medium border border-gray-600">Net Block</th>
                         </tr>
                         <tr>
@@ -70,23 +92,25 @@ export const PPESchedule: React.FC<PPEScheduleProps> = ({ ppeData, onUpdate, isF
                             <th className="p-2 text-right font-medium border border-gray-600">For the Year</th>
                             <th className="p-2 text-right font-medium border border-gray-600">On Disposals</th>
                             <th className="p-2 text-right font-medium border border-gray-600">Closing</th>
+                            <th className="p-2 text-right font-medium border border-gray-600">Loss</th>
+                            <th className="p-2 text-right font-medium border border-gray-600">Reversal</th>
                         </tr>
                     </thead>
                     <tbody>
-                        {ppeData.map(row => {
+                        {assets.map(row => {
                             const parse = (val: string) => parseFloat(val.replace(/,/g, '')) || 0;
                             const grossClosing = parse(row.grossBlockOpening) + parse(row.grossBlockAdditions) - parse(row.grossBlockDisposals);
                             const depClosing = parse(row.depreciationOpening) + parse(row.depreciationForYear) - parse(row.depreciationOnDisposals);
-                            const netClosing = grossClosing - depClosing;
+                            const netClosing = grossClosing - depClosing - parse(row.impairmentLoss) + parse(row.impairmentReversal);
 
                             return (
                                 <tr key={row.id} className="hover:bg-gray-700/30">
                                     <td className="p-0 border border-gray-600">
                                         <div className="flex items-center">
                                             {!isFinalized && <button onClick={() => removeRow(row.id)} className="p-2 text-gray-500 hover:text-red-400"><TrashIcon className="w-4 h-4"/></button>}
-                                            <input type="text" value={row.assetClass} onChange={e => handleUpdate(row.id, 'assetClass', e.target.value)} disabled={isFinalized} className="flex-1 bg-transparent p-2 border-none focus:ring-0 focus:outline-none focus:bg-gray-700/50" placeholder="e.g., Buildings"/>
+                                            <input type="text" value={row.assetClass} onChange={e => handleAssetUpdate(row.id, 'assetClass', e.target.value)} disabled={isFinalized} className="flex-1 bg-transparent p-2 border-none focus:ring-0 focus:outline-none focus:bg-gray-700/50" placeholder="e.g., Buildings"/>
                                             <div className="flex items-center pr-2">
-                                                <input type="checkbox" checked={row.isUnderLease} onChange={e => handleUpdate(row.id, 'isUnderLease', e.target.checked)} disabled={isFinalized} className="h-4 w-4 rounded bg-gray-600 border-gray-500 text-brand-blue focus:ring-brand-blue"/>
+                                                <input type="checkbox" checked={row.isUnderLease} onChange={e => handleAssetUpdate(row.id, 'isUnderLease', e.target.checked)} disabled={isFinalized} className="h-4 w-4 rounded bg-gray-600 border-gray-500 text-brand-blue focus:ring-brand-blue"/>
                                                 <label className="ml-2 text-xs text-gray-400">Leased</label>
                                             </div>
                                         </div>
@@ -99,6 +123,8 @@ export const PPESchedule: React.FC<PPEScheduleProps> = ({ ppeData, onUpdate, isF
                                     {renderCell(row, 'depreciationForYear')}
                                     {renderCell(row, 'depreciationOnDisposals')}
                                     <td className="p-2 border border-gray-600 text-right font-mono bg-gray-800/50">{depClosing.toLocaleString('en-IN', {minimumFractionDigits: 2})}</td>
+                                    {renderCell(row, 'impairmentLoss')}
+                                    {renderCell(row, 'impairmentReversal')}
                                     <td className="p-2 border border-gray-600 text-right font-mono bg-gray-800/50">{netClosing.toLocaleString('en-IN', {minimumFractionDigits: 2})}</td>
                                 </tr>
                             );
@@ -112,6 +138,26 @@ export const PPESchedule: React.FC<PPEScheduleProps> = ({ ppeData, onUpdate, isF
                     Add Asset Class
                 </button>
             )}
+             <div className="mt-6 space-y-4">
+                <DisclosureInput 
+                    label="Contractual commitments for the acquisition of PPE"
+                    value={commitments}
+                    onChange={v => handleFieldUpdate('commitments', v)}
+                    isFinalized={isFinalized}
+                />
+                <DisclosureInput 
+                    label="Assets pledged as security"
+                    value={pledgedAssets}
+                    onChange={v => handleFieldUpdate('pledgedAssets', v)}
+                    isFinalized={isFinalized}
+                />
+                <DisclosureInput 
+                    label="Borrowing Costs Capitalized (AS 16)"
+                    value={borrowingCostsCapitalized}
+                    onChange={v => handleFieldUpdate('borrowingCostsCapitalized', v)}
+                    isFinalized={isFinalized}
+                />
+            </div>
         </div>
     );
 };

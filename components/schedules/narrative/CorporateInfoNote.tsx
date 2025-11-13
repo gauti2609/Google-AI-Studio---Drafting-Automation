@@ -1,10 +1,12 @@
 
 import React from 'react';
 // FIX: Add file extension to fix module resolution error.
-import { CorporateInfoData, ScheduleData, RoundingUnit } from '../../../types.ts';
+// FIX: Replaced deprecated 'CorporateInfoData' with 'EntityInfoData'.
+import { EntityInfoData, ScheduleData, RoundingUnit } from '../../../types.ts';
 
 interface CorporateInfoNoteProps {
-    data: CorporateInfoData;
+    // FIX: Replaced deprecated 'CorporateInfoData' with 'EntityInfoData'.
+    data: EntityInfoData;
     onUpdate?: React.Dispatch<React.SetStateAction<ScheduleData>>;
     isFinalized?: boolean;
 }
@@ -36,12 +38,13 @@ const InputField: React.FC<{ label: string; value: string; onChange: (value: str
 
 export const CorporateInfoNote: React.FC<CorporateInfoNoteProps> = ({ data, onUpdate, isFinalized = false }) => {
 
-    const handleUpdate = (field: keyof CorporateInfoData, value: string) => {
+    // FIX: Replaced deprecated 'CorporateInfoData' with 'EntityInfoData' and 'corporateInfo' with 'entityInfo'.
+    const handleUpdate = (field: keyof EntityInfoData, value: string) => {
         if (onUpdate) {
             onUpdate(prev => ({
                 ...prev,
-                corporateInfo: {
-                    ...prev.corporateInfo,
+                entityInfo: {
+                    ...prev.entityInfo,
                     [field]: value
                 }
             }));

@@ -26,22 +26,24 @@ export const InvestmentsNote: React.FC<InvestmentsNoteProps> = ({ data }) => {
                     <thead className="bg-gray-700/50">
                         <tr>
                             <th className="p-2 text-left font-medium w-2/5">Particulars</th>
-                            <th className="p-2 text-left font-medium w-1/5">Basis of Valuation</th>
-                            <th className="p-2 text-right font-medium">Amount CY (₹)</th>
-                            <th className="p-2 text-right font-medium">Amount PY (₹)</th>
+                            <th className="p-2 text-left font-medium">Classification</th>
+                            <th className="p-2 text-right font-medium">Market Value</th>
+                            <th className="p-2 text-right font-medium">Cost (CY)</th>
+                            <th className="p-2 text-right font-medium">Cost (PY)</th>
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-600">
                         {data.items.map(item => (
                             <tr key={item.id}>
                                 <td className="p-2">{item.particular}</td>
-                                <td className="p-2 text-xs italic text-gray-400">{item.basisOfValuation || 'At Cost'}</td>
+                                <td className="p-2 capitalize">{item.classification}</td>
+                                <td className="p-2 text-right font-mono">{formatCurrency(item.marketValue)}</td>
                                 <td className="p-2 text-right font-mono">{formatCurrency(item.amountCy)}</td>
                                 <td className="p-2 text-right font-mono">{formatCurrency(item.amountPy)}</td>
                             </tr>
                         ))}
                         <tr className="font-bold bg-gray-700/30">
-                            <td className="p-2" colSpan={2}>Total</td>
+                            <td className="p-2" colSpan={3}>Total</td>
                             <td className="p-2 text-right font-mono">{formatCurrency(totalCy.toString())}</td>
                             <td className="p-2 text-right font-mono">{formatCurrency(totalPy.toString())}</td>
                         </tr>

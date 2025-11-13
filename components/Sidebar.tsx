@@ -1,4 +1,3 @@
-
 import React from 'react';
 // FIX: Add file extensions to fix module resolution errors.
 import { Page } from '../types.ts';
@@ -30,7 +29,7 @@ const NavItem: React.FC<{
 
 export const Sidebar: React.FC<SidebarProps> = ({ activePage, setActivePage }) => {
   return (
-    <aside className="w-64 bg-gray-800 border-r border-gray-700 p-4 flex flex-col">
+    <aside className="w-64 bg-gray-800 border-r border-gray-700 p-4 flex flex-col print:hidden">
       <div className="mb-8">
         <h1 className="text-2xl font-bold text-white">FinAutomate</h1>
         <p className="text-xs text-gray-400">Phase I Workbench</p>

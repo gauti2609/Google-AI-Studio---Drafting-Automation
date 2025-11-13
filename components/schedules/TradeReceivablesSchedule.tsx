@@ -1,8 +1,7 @@
-
+// components/schedules/TradeReceivablesSchedule.tsx
 
 import React from 'react';
-// FIX: Add file extension to fix module resolution error.
-import { TradeReceivablesData, ScheduleData, TradeReceivablesAgeingRow } from '../../types.ts';
+import { TradeReceivablesData, TradeReceivablesAgeingRow } from '../../types.ts';
 
 interface TradeReceivablesScheduleProps {
     title: string;
@@ -56,7 +55,6 @@ const AgeingTable: React.FC<{
                     {rowConfig.map(config => {
                          const rowData = ageingData.find(r => r.category === config.category);
                          if (!rowData) return null;
-                         // FIX: Replaced reduce with explicit sum for type safety.
                          const total = parse(rowData.lessThan6Months) + parse(rowData['6MonthsTo1Year']) + parse(rowData['1To2Years']) + parse(rowData['2To3Years']) + parse(rowData.moreThan3Years);
                         return (
                              <tr key={config.category} className="hover:bg-gray-700/30">

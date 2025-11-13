@@ -10,7 +10,6 @@ interface CommitmentsScheduleProps {
 
 export const CommitmentsSchedule: React.FC<CommitmentsScheduleProps> = ({ data, onUpdate, isFinalized }) => {
     
-    // FIX: Map data from ContingentLiability[] to GenericScheduleItem[] to match GenericSchedule component's expected props.
     const genericData: GenericScheduleItem[] = data.map(item => ({
         id: item.id,
         particular: item.nature,
@@ -18,7 +17,6 @@ export const CommitmentsSchedule: React.FC<CommitmentsScheduleProps> = ({ data, 
         amountPy: item.amountPy,
     }));
 
-    // FIX: Map data back from GenericScheduleItem[] to ContingentLiability[] before calling onUpdate.
     const handleUpdate = (updatedData: GenericScheduleItem[]) => {
         onUpdate(updatedData.map(item => ({
             id: item.id,

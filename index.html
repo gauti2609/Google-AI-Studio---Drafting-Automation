@@ -22,6 +22,25 @@
         }
       }
     </script>
+    <style>
+      @media print {
+        @page {
+          margin: 0.75in;
+        }
+        body {
+          background-color: white !important;
+        }
+        .note-wrapper {
+          break-inside: avoid;
+        }
+        /* Override dark mode colors for printing */
+        * {
+          background-color: transparent !important;
+          color: black !important;
+          border-color: #ccc !important;
+        }
+      }
+    </style>
   <script type="importmap">
 {
   "imports": {

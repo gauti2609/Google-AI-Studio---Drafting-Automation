@@ -1,4 +1,5 @@
 export type Page = 'mapping' | 'schedules' | 'notes' | 'reports';
+export type EntityType = 'Company' | 'LLP' | 'Non-Corporate';
 
 // --- Trial Balance & Mapping ---
 export interface TrialBalanceItem {
@@ -47,13 +48,20 @@ export interface MappingSuggestion {
 
 export type RoundingUnit = 'ones' | 'hundreds' | 'thousands' | 'lakhs' | 'millions' | 'crores';
 
-export interface CorporateInfoData {
-    companyName: string;
-    cin: string;
+export interface EntityInfoData {
+    companyName: string; // Generic name for entity
+    cin: string; // Or other registration number
     incorporationDate: string;
     registeredOffice: string;
     currencySymbol: string;
     roundingUnit: RoundingUnit;
+    entityType: EntityType;
+    turnoverCy: string;
+    turnoverPy: string;
+    borrowingsCy: string;
+    borrowingsPy: string;
+    employeesCy: string;
+    employeesPy: string;
 }
 
 export interface AccountingPolicy {
@@ -107,6 +115,7 @@ export interface ShareCapitalData {
     rightsPreferences: string;
     holdingCompanyShares: string;
     shareholders: Shareholder[];
+    sharesReserved: string;
     fiveYearHistoryBonus: string;
     fiveYearHistoryNoCash: string;
     fiveYearHistoryBuyback: string;
@@ -125,20 +134,43 @@ export interface OtherEquityItem {
     closing: string; // Calculated
 }
 
+export interface PartnerAccountRow {
+    id: string;
+    partnerName: string;
+    opening: string;
+    introduced: string;
+    remuneration: string;
+    interest: string;
+    withdrawals: string;
+    profitShare: string;
+    closing: string; // Calculated
+    agreedContribution?: string;
+    profitSharePercentage?: string;
+}
+
+export interface PartnersFundsData {
+    capitalAccount: PartnerAccountRow[];
+    currentAccount: PartnerAccountRow[];
+}
+
+
 export interface BorrowingItem {
     id: string;
     nature: string;
-    isSecured: boolean;
-    currency: string;
+    classification: 'secured' | 'unsecured';
     amountCy: string;
     amountPy: string;
     repaymentTerms: string;
+    defaultPeriod: string;
+    defaultAmount: string;
 }
 
 export interface BorrowingsData {
     longTerm: BorrowingItem[];
     shortTerm: BorrowingItem[];
+    directorGuarantees: string;
     reissuableBonds: string;
+    undrawnBorrowingFacilities: string;
 }
 
 export type TradePayablesAgeingCategory = 'msme' | 'others' | 'disputedMsme' | 'disputedOthers';
@@ -176,7 +208,23 @@ export interface PpeAssetRow {
     depreciationForYear: string;
     depreciationOnDisposals: string;
     depreciationClosing: string; // Calculated
+    impairmentLoss: string;
+    impairmentReversal: string;
     netBlockClosing: string; // Calculated
+}
+
+export interface PpeScheduleData {
+    assets: PpeAssetRow[];
+    commitments: string;
+    pledgedAssets: string;
+    borrowingCostsCapitalized: string;
+}
+
+export interface IntangibleAssetsScheduleData {
+    assets: PpeAssetRow[]; // Re-using PPE structure
+    commitments: string;
+    pledgedAssets: string;
+    researchAndDevelopmentExpense: string;
 }
 
 export interface CwipAssetRow {
@@ -249,8 +297,14 @@ export interface GenericScheduleItem {
     amountPy: string;
 }
 
-export interface InvestmentItem extends GenericScheduleItem {
-    basisOfValuation?: string;
+export interface InvestmentItem {
+    id: string;
+    particular: string;
+    classification: 'quoted' | 'unquoted';
+    marketValue: string;
+    amountCy: string;
+    amountPy: string;
+    basisOfValuation: string;
 }
 
 export interface InvestmentsScheduleData {
@@ -258,8 +312,13 @@ export interface InvestmentsScheduleData {
     provisionForDiminution: string;
 }
 
-export interface LoanAdvanceItem extends GenericScheduleItem {
-    // any specific fields?
+export interface LoanAdvanceItem {
+    id: string;
+    particular: string;
+    security: 'secured' | 'unsecured';
+    status: 'good' | 'doubtful';
+    amountCy: string;
+    amountPy: string;
 }
 
 export interface LoansAndAdvancesScheduleData {
@@ -280,10 +339,41 @@ export interface ChangesInInventoriesData {
     closing: InventoryRow[];
 }
 
+export interface DefinedBenefitPlanReconciliation {
+    opening: string;
+    currentServiceCost: string;
+    interestCost: string;
+    actuarialLossGain: string;
+    benefitsPaid: string;
+    closing: string; // Calculated
+}
+
+export interface DefinedBenefitPlanAssetsReconciliation {
+    opening: string;
+    expectedReturn: string;
+    actuarialLossGain: string;
+    contributions: string;
+    benefitsPaid: string;
+    closing: string; // Calculated
+}
+
+export interface ActuarialAssumptions {
+    discountRate: string;
+    expectedReturnOnAssets: string;
+    salaryIncreaseRate: string;
+}
+
+export interface DefinedBenefitPlanData {
+    obligationReconciliation: DefinedBenefitPlanReconciliation;
+    assetReconciliation: DefinedBenefitPlanAssetsReconciliation;
+    actuarialAssumptions: ActuarialAssumptions;
+}
+
 export interface EmployeeBenefitsData {
     salariesAndWages: string;
     contributionToFunds: string;
     staffWelfare: string;
+    definedBenefitPlans: DefinedBenefitPlanData;
 }
 
 export interface TaxExpenseData {
@@ -295,6 +385,8 @@ export interface EpsData {
     pat: string;
     preferenceDividend: string;
     weightedAvgEquityShares: string;
+    potentiallyDilutiveShares: string;
+    profitAdjustmentForDilution: string;
 }
 
 export interface RelatedParty {
@@ -327,10 +419,35 @@ export interface EventsAfterBalanceSheetData {
     content: string;
 }
 
+export interface ForeignExchangeImportData {
+    rawMaterials: string;
+    components: string;
+    capitalGoods: string;
+}
+
 export interface ForeignExchangeData {
     earnings: GenericScheduleItem[];
     expenditure: GenericScheduleItem[];
+    imports: ForeignExchangeImportData;
 }
+
+export interface AuditorPaymentsData {
+    asAuditor: string;
+    forTaxation: string;
+    forCompanyLaw: string;
+    forManagement: string;
+    forOther: string;
+    forReimbursement: string;
+}
+
+export interface ExceptionalItem {
+    id: string;
+    type: 'exceptional' | 'extraordinary' | 'priorPeriod';
+    particular: string;
+    amountCy: string;
+    amountPy: string;
+}
+
 
 export interface RatioExplanation {
     id: string;
@@ -392,7 +509,49 @@ export interface FundUtilisationData {
     guarantees: FundUtilisationGuarantee[];
 }
 
+export interface ImmovableProperty {
+    id: string;
+    lineItem: string;
+    description: string;
+    grossCarrying: string;
+    holderName: string;
+    isPromoter: string;
+    heldSince: string;
+    reason: string;
+}
+
+export interface LoanToPromoter {
+    id: string;
+    borrowerType: string;
+    amount: string;
+    percentage: string;
+}
+
+export interface BenamiProperty {
+    id: string;
+    details: string;
+    amount: string;
+    beneficiaries: string;
+    inBooks: string;
+    reason: string;
+}
+
+export interface StruckOffCompany {
+    id: string;
+    name: string;
+    nature: string;
+    balance: string;
+    relationship: string;
+}
+
 export interface AdditionalRegulatoryInfoData {
+    immovableProperty: ImmovableProperty[];
+    ppeRevaluation: string;
+    loansToPromoters: LoanToPromoter[];
+    benamiProperty: BenamiProperty[];
+    currentAssetBorrowings: string;
+    wilfulDefaulter: string;
+    struckOffCompanies: StruckOffCompany[];
     csr: CsrData;
     crypto: CryptoData;
     registrationOfCharges: string;
@@ -402,24 +561,135 @@ export interface AdditionalRegulatoryInfoData {
     undisclosedIncome: string;
 }
 
+export interface ProvisionReconciliationRow {
+    id: string;
+    provisionName: string;
+    opening: string;
+    additions: string;
+    usedOrReversed: string;
+    closing: string; // Calculated
+}
+
+export interface ProvisionsData {
+    longTerm: ProvisionReconciliationRow[];
+    shortTerm: ProvisionReconciliationRow[];
+}
+
+export interface ConstructionContractItem {
+    id: string;
+    contractName: string;
+    contractRevenue: string;
+    costsIncurred: string;
+    profitsRecognised: string;
+    advancesReceived: string;
+    retentions: string;
+}
+
+export interface ConstructionContractData {
+    items: ConstructionContractItem[];
+}
+
+export interface GovernmentGrantItem {
+    id: string;
+    nature: string;
+    amountRecognised: string;
+    policy: string;
+}
+
+export interface GovernmentGrantsData {
+    items: GovernmentGrantItem[];
+}
+
+export interface SegmentItem {
+    id: string;
+    segmentName: string;
+    revenue: string;
+    result: string;
+    assets: string;
+    liabilities: string;
+}
+
+export interface SegmentReportingData {
+    items: SegmentItem[];
+}
+
+export interface MlpReconciliation {
+    notLaterThan1Year: string;
+    laterThan1YearAndNotLaterThan5Years: string;
+    laterThan5Years: string;
+}
+
+export interface LeasesData {
+    lesseeFinanceMlp: MlpReconciliation;
+    lesseeOperatingMlp: MlpReconciliation;
+    lesseeGeneralDescription: string;
+    lessorFinanceMlp: MlpReconciliation;
+    lessorOperatingMlp: MlpReconciliation;
+    lessorGeneralDescription: string;
+}
+
+export interface DiscontinuingOperationAssetLiability {
+    id: string;
+    particular: string;
+    carryingAmount: string;
+}
+
+export interface DiscontinuingOperationData {
+    description: string;
+    initialDisclosureDate: string;
+    expectedCompletionDate: string;
+    assets: DiscontinuingOperationAssetLiability[];
+    liabilities: DiscontinuingOperationAssetLiability[];
+    revenue: string;
+    expenses: string;
+    preTaxProfitLoss: string;
+    incomeTaxExpense: string;
+    netProfitLoss: string;
+}
+
+export interface AmalgamationConsiderationItem {
+    id: string;
+    particular: string;
+    amount: string;
+}
+
+export interface AmalgamationData {
+    nature: 'merger' | 'purchase';
+    amalgamatedCompany: string;
+    effectiveDate: string;
+    accountingMethod: string;
+    consideration: AmalgamationConsiderationItem[];
+    treatmentOfReserves: string;
+    additionalInfo: string;
+}
+
 
 // --- Main ScheduleData structure ---
 export interface ScheduleData {
     isFinalized: boolean;
-    corporateInfo: CorporateInfoData;
+    entityInfo: EntityInfoData;
     accountingPolicies: AccountingPoliciesData;
-    shareCapital: ShareCapitalData;
-    otherEquity: OtherEquityItem[];
+    companyShareCapital: ShareCapitalData;
+    companyOtherEquity: OtherEquityItem[];
+    partnersFunds: PartnersFundsData;
     borrowings: BorrowingsData;
+    otherLongTermLiabilities: GenericScheduleItem[];
+    longTermProvisions: GenericScheduleItem[];
+    otherCurrentLiabilities: GenericScheduleItem[];
+    shortTermProvisions: GenericScheduleItem[];
     tradePayables: TradePayablesData;
-    ppe: PpeAssetRow[];
+    ppe: PpeScheduleData;
     cwip: CWIPRow[];
     cwipAgeing: AssetAgeingRow[];
-    intangibleAssets: PpeAssetRow[]; // Re-using PPE structure
+    intangibleAssets: IntangibleAssetsScheduleData;
     intangibleAssetsUnderDevelopmentMovement: CWIPRow[];
     intangibleAssetsUnderDevelopmentAgeing: AssetAgeingRow[];
-    investments: InvestmentsScheduleData;
-    loansAndAdvances: LoansAndAdvancesScheduleData; 
+    investments: InvestmentsScheduleData; // Non-current
+    currentInvestments: InvestmentsScheduleData;
+    loansAndAdvances: LoansAndAdvancesScheduleData; // Long-term
+    shortTermLoansAndAdvances: LoansAndAdvancesScheduleData;
+    otherNonCurrentAssets: GenericScheduleItem[];
+    otherCurrentAssets: GenericScheduleItem[];
     inventories: InventoryBalanceRow[];
     inventoriesValuationMode: string;
     tradeReceivables: TradeReceivablesData;
@@ -434,16 +704,23 @@ export interface ScheduleData {
     financeCosts: GenericScheduleItem[];
     otherExpenses: GenericScheduleItem[];
     taxExpense: TaxExpenseData;
-    exceptionalItems: GenericScheduleItem[];
+    exceptionalItems: ExceptionalItem[];
     eps: EpsData;
     relatedParties: RelatedPartyData;
     contingentLiabilities: ContingentLiability[];
     commitments: ContingentLiability[]; // Re-using structure
     eventsAfterBalanceSheet: EventsAfterBalanceSheetData;
     foreignExchange: ForeignExchangeData;
-    auditorPayments: GenericScheduleItem[];
+    auditorPayments: AuditorPaymentsData;
     additionalRegulatoryInfo: AdditionalRegulatoryInfoData;
     deferredTax: DeferredTaxData;
+    provisions: ProvisionsData;
+    constructionContracts: ConstructionContractData;
+    governmentGrants: GovernmentGrantsData;
+    segmentReporting: SegmentReportingData;
+    leases: LeasesData;
+    discontinuingOperations: DiscontinuingOperationData;
+    amalgamations: AmalgamationData;
     ratioExplanations: Record<string, RatioExplanation>;
     noteSelections: {id: string, name: string, order: number, isSelected: boolean}[];
 }

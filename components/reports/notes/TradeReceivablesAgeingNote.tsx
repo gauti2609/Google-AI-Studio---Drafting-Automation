@@ -1,15 +1,15 @@
-
+// components/reports/notes/TradeReceivablesNote.tsx
 import React from 'react';
-// FIX: Add file extension to fix module resolution error.
 import { TradeReceivablesData } from '../../../types.ts';
 
 interface TradeReceivablesNoteProps {
     data: TradeReceivablesData;
 }
 
-const format = (val: string) => {
-    const num = parseFloat(val) || 0;
-    return num === 0 ? '-' : num.toLocaleString('en-IN', {minimumFractionDigits: 2});
+const format = (val: string | number) => {
+    const num = typeof val === 'string' ? parseFloat(val.replace(/,/g, '')) : val;
+    if (isNaN(num) || num === 0) return '-';
+    return new Intl.NumberFormat('en-IN', {minimumFractionDigits: 2}).format(num);
 };
 
 const AgeingTable: React.FC<{data: TradeReceivablesData['ageing']}> = ({ data }) => {
@@ -37,7 +37,6 @@ const AgeingTable: React.FC<{data: TradeReceivablesData['ageing']}> = ({ data })
                 {rowConfig.map(config => {
                      const rowData = data.find(r => r.category === config.category);
                      if (!rowData) return null;
-                     // FIX: Replaced reduce with explicit sum for type safety.
                      const total = parse(rowData.lessThan6Months) + parse(rowData['6MonthsTo1Year']) + parse(rowData['1To2Years']) + parse(rowData['2To3Years']) + parse(rowData.moreThan3Years);
                     return (
                          <tr key={config.category}>
@@ -57,6 +56,9 @@ const AgeingTable: React.FC<{data: TradeReceivablesData['ageing']}> = ({ data })
 }
 
 export const TradeReceivablesNote: React.FC<TradeReceivablesNoteProps> = ({ data }) => {
+    const p = (v:string) => parseFloat(v) || 0;
+    const gross = p(data.securedGood) + p(data.unsecuredGood) + p(data.doubtful);
+    const net = gross - p(data.provisionForDoubtful);
     return (
         <div className="space-y-4 text-sm">
             <table className="max-w-md">
@@ -64,9 +66,9 @@ export const TradeReceivablesNote: React.FC<TradeReceivablesNoteProps> = ({ data
                     <tr><td className="p-2 pl-4">Secured, considered good</td><td className="p-2 text-right font-mono">{format(data.securedGood)}</td></tr>
                     <tr><td className="p-2 pl-4">Unsecured, considered good</td><td className="p-2 text-right font-mono">{format(data.unsecuredGood)}</td></tr>
                     <tr><td className="p-2 pl-4">Doubtful</td><td className="p-2 text-right font-mono">{format(data.doubtful)}</td></tr>
-                    <tr className="border-t-2 border-gray-500"><td className="p-2 font-bold">Gross Receivables</td><td className="p-2 text-right font-mono font-bold">{format((parseFloat(data.securedGood) || 0 + parseFloat(data.unsecuredGood) || 0 + parseFloat(data.doubtful) || 0).toString())}</td></tr>
+                    <tr className="border-t-2 border-gray-500"><td className="p-2 font-bold">Gross Receivables</td><td className="p-2 text-right font-mono font-bold">{format(gross)}</td></tr>
                     <tr><td className="p-2 pl-4">Less: Provision for doubtful receivables</td><td className="p-2 text-right font-mono">({format(data.provisionForDoubtful)})</td></tr>
-                    <tr className="font-bold bg-gray-700/30"><td className="p-2">Net Receivables</td><td className="p-2 text-right font-mono">{format(( (parseFloat(data.securedGood) || 0) + (parseFloat(data.unsecuredGood) || 0) + (parseFloat(data.doubtful) || 0) - (parseFloat(data.provisionForDoubtful) || 0)).toString())}</td></tr>
+                    <tr className="font-bold bg-gray-700/30"><td className="p-2">Net Receivables</td><td className="p-2 text-right font-mono">{format(net)}</td></tr>
                  </tbody>
             </table>
             <AgeingTable data={data.ageing} />

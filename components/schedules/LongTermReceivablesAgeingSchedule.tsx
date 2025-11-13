@@ -1,8 +1,7 @@
-
 // components/schedules/LongTermReceivablesAgeingSchedule.tsx
 import React from 'react';
 import { TradeReceivablesData, TradeReceivablesAgeingRow } from '../../types.ts';
-import { TradeReceivablesSchedule } from './TradeReceivablesSchedule.tsx'; // Re-using for structure
+import { TradeReceivablesSchedule } from './TradeReceivablesSchedule.tsx';
 
 interface LongTermReceivablesAgeingScheduleProps {
     data: TradeReceivablesAgeingRow[];
@@ -10,24 +9,29 @@ interface LongTermReceivablesAgeingScheduleProps {
     isFinalized: boolean;
 }
 
-// This is a simplified version that re-uses the ageing table logic from TradeReceivablesSchedule
-// A more robust implementation might have a shared AgeingTable component.
 export const LongTermReceivablesAgeingSchedule: React.FC<LongTermReceivablesAgeingScheduleProps> = ({ data, onUpdate, isFinalized }) => {
     
-    // Mocking the structure required by TradeReceivablesSchedule for its AgeingTable part
+    // Create a mock structure for the parts of TradeReceivablesData we don't need here.
     const mockTradeRecData: TradeReceivablesData = {
-        securedGood: '', unsecuredGood: '', doubtful: '', provisionForDoubtful: '',
+        securedGood: '0', 
+        unsecuredGood: '0', 
+        doubtful: '0', 
+        provisionForDoubtful: '0',
         ageing: data,
     };
     
+    // Wrapper onUpdate to only pass back the ageing part
+    const handleUpdate = (fullData: TradeReceivablesData) => {
+        onUpdate(fullData.ageing);
+    }
+    
     return (
         <div className="space-y-6">
-            <h3 className="text-lg font-semibold text-white">Long-Term Trade Receivables - Ageing</h3>
-            {/* FIX: The TradeReceivablesSchedule component has more fields than just ageing, so we only render its ageing table part by passing mock data. We also adjust the onUpdate to only pass back the ageing data. */}
+             {/* The title prop in TradeReceivablesSchedule will be rendered, so we can control it here */}
             <TradeReceivablesSchedule
-                title=""
+                title="Long-Term Trade Receivables"
                 data={mockTradeRecData}
-                onUpdate={(d) => onUpdate(d.ageing)}
+                onUpdate={handleUpdate}
                 isFinalized={isFinalized}
             />
         </div>

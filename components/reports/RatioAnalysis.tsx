@@ -1,4 +1,3 @@
-
 import React from 'react';
 // FIX: Add file extension to fix module resolution error.
 import { AllData } from '../../types.ts';
@@ -32,7 +31,7 @@ const calculateRatios = (allData: AllData) => {
     const employeeBenefitsCy = getTBTotal('C.20.04', 'cy');
     const financeCostsCy = getTBTotal('C.20.05', 'cy');
     const otherExpensesCy = getTBTotal('C.20.07', 'cy');
-    const depreciationCy = scheduleData.ppe.reduce((sum, row) => sum + parse(row.depreciationForYear), 0) + scheduleData.intangibleAssets.reduce((sum, row) => sum + parse(row.depreciationForYear), 0);
+    const depreciationCy = scheduleData.ppe.assets.reduce((sum, row) => sum + parse(row.depreciationForYear), 0) + scheduleData.intangibleAssets.assets.reduce((sum, row) => sum + parse(row.depreciationForYear), 0);
     const totalExpensesCy = purchasesCy + employeeBenefitsCy + financeCostsCy + otherExpensesCy + depreciationCy;
     const pbtCy = totalIncomeCy - totalExpensesCy;
     const taxCy = parse(scheduleData.taxExpense.currentTax) + parse(scheduleData.taxExpense.deferredTax);

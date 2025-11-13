@@ -1,29 +1,23 @@
-
 import React from 'react';
 // FIX: Add file extension to fix module resolution error.
-import { ScheduleData, GenericScheduleItem } from '../../types.ts';
+import { GenericScheduleItem } from '../../types.ts';
 import { GenericSchedule } from './GenericSchedule.tsx';
 
 interface RevenueFromOpsScheduleProps {
     data: GenericScheduleItem[];
-    onUpdate: React.Dispatch<React.SetStateAction<ScheduleData>>;
+    // FIX: Changed onUpdate prop to be a callback with the specific data slice, making the component more modular and fixing type errors.
+    onUpdate: (data: GenericScheduleItem[]) => void;
     isFinalized: boolean;
 }
 
 export const RevenueFromOpsSchedule: React.FC<RevenueFromOpsScheduleProps> = ({ data, onUpdate, isFinalized }) => {
     
-    const handleDataUpdate = (updatedData: GenericScheduleItem[]) => {
-        onUpdate(prev => ({
-            ...prev,
-            revenueFromOps: updatedData
-        }));
-    };
-
+    // FIX: Removed the handleDataUpdate wrapper as it's no longer needed with the refactored onUpdate prop.
     return (
         <GenericSchedule
             title="Revenue from Operations"
             data={data}
-            onUpdate={handleDataUpdate}
+            onUpdate={onUpdate}
             isFinalized={isFinalized}
         />
     );

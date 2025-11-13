@@ -27,7 +27,7 @@ import { TaxExpenseSchedule } from '../components/schedules/TaxExpenseSchedule.t
 import { EarningsPerShareSchedule } from '../components/schedules/EarningsPerShareSchedule.tsx';
 import { RelatedPartySchedule } from '../components/schedules/RelatedPartySchedule.tsx';
 import { ContingentLiabilitiesSchedule } from '../components/schedules/ContingentLiabilitiesSchedule.tsx';
-import { CorporateInfoNote } from '../components/schedules/narrative/CorporateInfoNote.tsx';
+import { EntityInfoSchedule } from '../components/schedules/narrative/EntityInfoSchedule.tsx';
 import { AccountingPoliciesNote } from '../components/schedules/narrative/AccountingPoliciesNote.tsx';
 import { EventsAfterBalanceSheetNote } from '../components/schedules/narrative/EventsAfterBalanceSheetNote.tsx';
 import { CommitmentsSchedule } from '../components/schedules/CommitmentsSchedule.tsx';
@@ -42,15 +42,34 @@ import { IntangibleAssetsUnderDevelopmentSchedule } from '../components/schedule
 import { AdditionalRegulatoryInfoNote } from '../components/schedules/narrative/AdditionalRegulatoryInfoNote.tsx';
 import { TradePayablesMsmeSchedule } from '../components/schedules/TradePayablesMsmeSchedule.tsx';
 import { LongTermReceivablesAgeingSchedule } from '../components/schedules/LongTermReceivablesAgeingSchedule.tsx';
+import { GovernmentGrantsSchedule } from '../components/schedules/GovernmentGrantsSchedule.tsx';
+import { DiscontinuingOperationsSchedule } from '../components/schedules/DiscontinuingOperationsSchedule.tsx';
+import { AmalgamationsSchedule } from '../components/schedules/AmalgamationsSchedule.tsx';
+
+// NEW IMPORTS
+import { OtherLongTermLiabilitiesSchedule } from '../components/schedules/OtherLongTermLiabilitiesSchedule.tsx';
+import { ProvisionsSchedule } from '../components/schedules/ProvisionsSchedule.tsx';
+import { OtherCurrentLiabilitiesSchedule } from '../components/schedules/OtherCurrentLiabilitiesSchedule.tsx';
+import { CurrentInvestmentsSchedule } from '../components/schedules/CurrentInvestmentsSchedule.tsx';
+import { ShortTermLoansAndAdvancesSchedule } from '../components/schedules/ShortTermLoansAndAdvancesSchedule.tsx';
+import { PurchasesSchedule } from '../components/schedules/PurchasesSchedule.tsx';
+import { OtherNonCurrentAssetsSchedule } from '../components/schedules/OtherNonCurrentAssetsSchedule.tsx';
+import { OtherCurrentAssetsSchedule } from '../components/schedules/OtherCurrentAssetsSchedule.tsx';
+import { ConstructionContractsSchedule } from '../components/schedules/ConstructionContractsSchedule.tsx';
+import { SegmentReportingSchedule } from '../components/schedules/SegmentReportingSchedule.tsx';
+import { LeasesSchedule } from '../components/schedules/LeasesSchedule.tsx';
+import { PartnerOwnerFundsSchedule } from '../components/schedules/PartnerOwnerFundsSchedule.tsx';
+import { getEntityLevel, getApplicableNotes } from '../utils/applicabilityUtils.ts';
 
 
-type ScheduleView = 'corpInfo' | 'accountingPolicies' | 'shareCapital' | 'otherEquity' | 'borrowings' | 'tradePayables' | 'ppe' | 'cwip' | 'intangible' | 'investments' | 'loans' | 'inventories' | 'tradeReceivables' | 'cash' | 'revenue' | 'otherIncome' | 'cogs' | 'purchases' | 'changesInInv' | 'employee' | 'finance' | 'otherExpenses' | 'tax' | 'exceptional' | 'eps' | 'relatedParties' | 'contingent' | 'commitments' | 'eventsAfterBS' | 'forex' | 'auditor' | 'regulatory' | 'deferredTax' | 'ratioExplanations' | 'intangibleDev' | 'msme' | 'longTermReceivables';
+type ScheduleView = 'entityInfo' | 'accountingPolicies' | 'shareCapital' | 'otherEquity' | 'partnersFunds' | 'ownersFunds' |'borrowings' | 'otherLongTermLiabilities' | 'provisions' | 'tradePayables' | 'otherCurrentLiabilities' | 'msme' | 'ppe' | 'cwip' | 'intangible' | 'intangibleDev' | 'investments' | 'longTermLoans' | 'longTermReceivables' | 'otherNonCurrentAssets' | 'currentInvestments' | 'inventories' | 'tradeReceivables' | 'cash' | 'shortTermLoans' | 'otherCurrentAssets' | 'revenue' | 'otherIncome' | 'cogs' | 'purchases' | 'changesInInv' | 'employee' | 'finance' | 'otherExpenses' | 'tax' | 'exceptional' | 'eps' | 'relatedParties' | 'contingent' | 'commitments' | 'eventsAfterBS' | 'forex' | 'auditor' | 'regulatory' | 'deferredTax' | 'ratioExplanations' | 'construction' | 'govtGrants' | 'segmentReporting' | 'leases' | 'discontinuingOps' | 'amalgamations';
 
 export const SchedulesPage: React.FC<{ allData: AllData; setScheduleData: React.Dispatch<React.SetStateAction<ScheduleData>> }> = ({ allData, setScheduleData }) => {
-    const [activeView, setActiveView] = useState<ScheduleView>('corpInfo');
+    const [activeView, setActiveView] = useState<ScheduleView>('entityInfo');
     const [isConfirmModalOpen, setConfirmModalOpen] = useState(false);
     
     const { scheduleData } = allData;
+    const { entityInfo } = scheduleData;
     const isFinalized = scheduleData.isFinalized;
 
     const handleFinalize = () => {
@@ -64,26 +83,42 @@ export const SchedulesPage: React.FC<{ allData: AllData; setScheduleData: React.
 
     const renderSchedule = () => {
         switch (activeView) {
-            case 'corpInfo':
-                return <CorporateInfoNote data={scheduleData.corporateInfo} onUpdate={setScheduleData} isFinalized={isFinalized} />;
+            // General
+            case 'entityInfo':
+                return <EntityInfoSchedule data={scheduleData.entityInfo} onUpdate={setScheduleData} isFinalized={isFinalized} />;
             case 'accountingPolicies':
                 return <AccountingPoliciesNote data={scheduleData.accountingPolicies} onUpdate={setScheduleData} isFinalized={isFinalized} />;
+            
+            // Equity & Liabilities
             case 'shareCapital':
-                return <ShareCapitalSchedule data={scheduleData.shareCapital} onUpdate={setScheduleData} isFinalized={isFinalized} />;
+                return <ShareCapitalSchedule data={scheduleData.companyShareCapital} onUpdate={setScheduleData} isFinalized={isFinalized} />;
             case 'otherEquity':
-                return <OtherEquitySchedule data={scheduleData.otherEquity} onUpdate={(d) => setScheduleData(p => ({...p, otherEquity: d}))} isFinalized={isFinalized} />;
+                return <OtherEquitySchedule data={scheduleData.companyOtherEquity} onUpdate={(d) => setScheduleData(p => ({...p, companyOtherEquity: d}))} isFinalized={isFinalized} />;
+            case 'partnersFunds':
+                return <PartnerOwnerFundsSchedule title="Partners' Funds" data={scheduleData.partnersFunds} onUpdate={(d) => setScheduleData(p => ({ ...p, partnersFunds: d }))} isFinalized={isFinalized} />;
+             case 'ownersFunds':
+                return <PartnerOwnerFundsSchedule title="Owners' Funds" data={scheduleData.partnersFunds} onUpdate={(d) => setScheduleData(p => ({ ...p, partnersFunds: d }))} isFinalized={isFinalized} />;
             case 'borrowings':
                 return <BorrowingsSchedule data={scheduleData.borrowings} onUpdate={setScheduleData} isFinalized={isFinalized} />;
+            case 'otherLongTermLiabilities':
+                return <OtherLongTermLiabilitiesSchedule data={scheduleData.otherLongTermLiabilities} onUpdate={(d) => setScheduleData(p => ({...p, otherLongTermLiabilities: d}))} isFinalized={isFinalized} />;
+            case 'provisions':
+                 return <ProvisionsSchedule data={scheduleData.provisions} onUpdate={(d) => setScheduleData(p => ({...p, provisions: d}))} isFinalized={isFinalized} />;
+            case 'otherCurrentLiabilities':
+                return <OtherCurrentLiabilitiesSchedule data={scheduleData.otherCurrentLiabilities} onUpdate={(d) => setScheduleData(p => ({...p, otherCurrentLiabilities: d}))} isFinalized={isFinalized} />;
             case 'tradePayables':
                 return <TradePayablesSchedule data={scheduleData.tradePayables} onUpdate={(d) => setScheduleData(p => ({...p, tradePayables: d}))} isFinalized={isFinalized} />;
             case 'msme':
                 return <TradePayablesMsmeSchedule data={scheduleData.tradePayables.msmeDisclosures} onUpdate={(d) => setScheduleData(p => ({...p, tradePayables: {...p.tradePayables, msmeDisclosures: d}}))} isFinalized={isFinalized} />;
+            case 'deferredTax':
+                return <DeferredTaxSchedule data={scheduleData.deferredTax} onUpdate={(d) => setScheduleData(p => ({...p, deferredTax: d}))} isFinalized={isFinalized} />;
+
+            // Assets
             case 'ppe':
-                 return <PPESchedule ppeData={scheduleData.ppe} onUpdate={(d) => setScheduleData(p => ({...p, ppe: d}))} isFinalized={isFinalized} />;
+                 return <PPESchedule data={scheduleData.ppe} onUpdate={(d) => setScheduleData(p => ({...p, ppe: d}))} isFinalized={isFinalized} />;
             case 'cwip':
                 return (
                     <div className="space-y-8">
-                        {/* FIX: Changed onUpdate to pass setScheduleData directly, as the component expects the full state setter. */}
                         <CWIPSchedule data={scheduleData.cwip} onUpdate={setScheduleData} isFinalized={isFinalized} />
                         <CWIPAgeingSchedule data={scheduleData.cwipAgeing} onUpdate={(d) => setScheduleData(p => ({...p, cwipAgeing: d}))} isFinalized={isFinalized} />
                     </div>
@@ -99,39 +134,48 @@ export const SchedulesPage: React.FC<{ allData: AllData; setScheduleData: React.
                 );
             case 'investments':
                 return <InvestmentsSchedule data={scheduleData.investments} onUpdate={(d) => setScheduleData(p => ({...p, investments: d}))} isFinalized={isFinalized} />;
-            case 'loans':
+             case 'currentInvestments':
+                return <CurrentInvestmentsSchedule data={scheduleData.currentInvestments} onUpdate={(d) => setScheduleData(p => ({...p, currentInvestments: d}))} isFinalized={isFinalized} />;
+            case 'longTermLoans':
                 return <LoansAndAdvancesSchedule data={scheduleData.loansAndAdvances} onUpdate={(d) => setScheduleData(p => ({...p, loansAndAdvances: d}))} isFinalized={isFinalized} />;
+            case 'shortTermLoans':
+                return <ShortTermLoansAndAdvancesSchedule data={scheduleData.shortTermLoansAndAdvances} onUpdate={(d) => setScheduleData(p => ({...p, shortTermLoansAndAdvances: d}))} isFinalized={isFinalized} />;
+            case 'longTermReceivables':
+                return <LongTermReceivablesAgeingSchedule data={scheduleData.longTermTradeReceivables.ageing} onUpdate={(d) => setScheduleData(p => ({...p, longTermTradeReceivables: {...p.longTermTradeReceivables, ageing: d}}))} isFinalized={isFinalized} />;
+            case 'otherNonCurrentAssets':
+                return <OtherNonCurrentAssetsSchedule data={scheduleData.otherNonCurrentAssets} onUpdate={(d) => setScheduleData(p => ({...p, otherNonCurrentAssets: d}))} isFinalized={isFinalized} />;
             case 'inventories':
                 return <InventoriesBalanceSchedule data={scheduleData.inventories} valuationMode={scheduleData.inventoriesValuationMode} onUpdate={setScheduleData} isFinalized={isFinalized} />;
             case 'tradeReceivables':
                 return <TradeReceivablesSchedule title="Short-Term Trade Receivables" data={scheduleData.tradeReceivables} onUpdate={(d) => setScheduleData(p => ({...p, tradeReceivables: d}))} isFinalized={isFinalized} />;
-            case 'longTermReceivables':
-                {/* FIX: Pass the correct slice of data (`.ageing`) and update the state accordingly to match component props. */}
-                return <LongTermReceivablesAgeingSchedule data={scheduleData.longTermTradeReceivables.ageing} onUpdate={(d) => setScheduleData(p => ({...p, longTermTradeReceivables: {...p.longTermTradeReceivables, ageing: d}}))} isFinalized={isFinalized} />;
             case 'cash':
                 return <CashAndCashEquivalentsSchedule data={scheduleData.cashAndCashEquivalents} onUpdate={setScheduleData} isFinalized={isFinalized} />;
+            case 'otherCurrentAssets':
+                return <OtherCurrentAssetsSchedule data={scheduleData.otherCurrentAssets} onUpdate={(d) => setScheduleData(p => ({...p, otherCurrentAssets: d}))} isFinalized={isFinalized} />;
+            
+            // P&L
             case 'revenue':
-                {/* FIX: Changed onUpdate to pass setScheduleData directly, as the component expects the full state setter. */}
-                return <RevenueFromOpsSchedule data={scheduleData.revenueFromOps} onUpdate={setScheduleData} isFinalized={isFinalized} />;
+                return <RevenueFromOpsSchedule data={scheduleData.revenueFromOps} onUpdate={(d) => setScheduleData(p => ({...p, revenueFromOps: d}))} isFinalized={isFinalized} />;
             case 'otherIncome':
-                {/* FIX: Changed onUpdate to pass setScheduleData directly, as the component expects the full state setter. */}
-                return <OtherIncomeSchedule data={scheduleData.otherIncome} onUpdate={setScheduleData} isFinalized={isFinalized} />;
+                return <OtherIncomeSchedule data={scheduleData.otherIncome} onUpdate={(d) => setScheduleData(p => ({...p, otherIncome: d}))} isFinalized={isFinalized} />;
             case 'cogs':
                 return <CostOfMaterialsConsumedSchedule data={scheduleData.costOfMaterialsConsumed} onUpdate={setScheduleData} isFinalized={isFinalized} />;
+            case 'purchases':
+                return <PurchasesSchedule data={scheduleData.purchases} onUpdate={(d) => setScheduleData(p => ({...p, purchases: d}))} isFinalized={isFinalized} />;
             case 'changesInInv':
                 return <ChangesInInventoriesSchedule data={scheduleData.changesInInventories} onUpdate={setScheduleData} isFinalized={isFinalized} />;
             case 'employee':
                 return <EmployeeBenefitsSchedule data={scheduleData.employeeBenefits} onUpdate={setScheduleData} isFinalized={isFinalized} />;
             case 'finance':
-                {/* FIX: Changed onUpdate to pass setScheduleData directly, as the component expects the full state setter. */}
-                return <FinanceCostsSchedule data={scheduleData.financeCosts} onUpdate={setScheduleData} isFinalized={isFinalized} />;
+                return <FinanceCostsSchedule data={scheduleData.financeCosts} onUpdate={(d) => setScheduleData(p => ({...p, financeCosts: d}))} isFinalized={isFinalized} />;
             case 'otherExpenses':
-                {/* FIX: Changed onUpdate to pass setScheduleData directly, as the component expects the full state setter. */}
-                return <OtherExpensesSchedule data={scheduleData.otherExpenses} onUpdate={setScheduleData} isFinalized={isFinalized} />;
+                return <OtherExpensesSchedule data={scheduleData.otherExpenses} onUpdate={(d) => setScheduleData(p => ({...p, otherExpenses: d}))} isFinalized={isFinalized} />;
             case 'tax':
                 return <TaxExpenseSchedule data={scheduleData.taxExpense} onUpdate={setScheduleData} isFinalized={isFinalized} />;
             case 'exceptional':
                 return <ExceptionalItemsSchedule data={scheduleData.exceptionalItems} onUpdate={(d) => setScheduleData(p => ({...p, exceptionalItems: d}))} isFinalized={isFinalized} />;
+
+            // Other Disclosures
             case 'eps':
                 return <EarningsPerShareSchedule data={scheduleData.eps} onUpdate={setScheduleData} isFinalized={isFinalized} />;
             case 'relatedParties':
@@ -148,54 +192,106 @@ export const SchedulesPage: React.FC<{ allData: AllData; setScheduleData: React.
                  return <AuditorPaymentsSchedule data={scheduleData.auditorPayments} onUpdate={(d) => setScheduleData(p => ({...p, auditorPayments: d}))} isFinalized={isFinalized} />;
             case 'regulatory':
                  return <AdditionalRegulatoryInfoNote data={scheduleData.additionalRegulatoryInfo} onUpdate={setScheduleData} isFinalized={isFinalized} />;
-            case 'deferredTax':
-                return <DeferredTaxSchedule data={scheduleData.deferredTax} onUpdate={(d) => setScheduleData(p => ({...p, deferredTax: d}))} isFinalized={isFinalized} />;
              case 'ratioExplanations':
                 return <RatioAnalysisExplanations allData={allData} onUpdate={setScheduleData} isFinalized={isFinalized} />;
+            case 'construction':
+                return <ConstructionContractsSchedule data={scheduleData.constructionContracts} onUpdate={(d) => setScheduleData(p => ({...p, constructionContracts: d}))} isFinalized={isFinalized} />;
+            case 'govtGrants':
+                return <GovernmentGrantsSchedule data={scheduleData.governmentGrants} onUpdate={(d) => setScheduleData(p => ({...p, governmentGrants: d}))} isFinalized={isFinalized} />;
+            case 'segmentReporting':
+                return <SegmentReportingSchedule data={scheduleData.segmentReporting} onUpdate={(d) => setScheduleData(p => ({...p, segmentReporting: d}))} isFinalized={isFinalized} />;
+            case 'leases':
+                return <LeasesSchedule data={scheduleData.leases} onUpdate={(d) => setScheduleData(p => ({...p, leases: d}))} isFinalized={isFinalized} />;
+            case 'discontinuingOps':
+                return <DiscontinuingOperationsSchedule data={scheduleData.discontinuingOperations} onUpdate={(d) => setScheduleData(p => ({...p, discontinuingOperations: d}))} isFinalized={isFinalized} />;
+            case 'amalgamations':
+                return <AmalgamationsSchedule data={scheduleData.amalgamations} onUpdate={(d) => setScheduleData(p => ({...p, amalgamations: d}))} isFinalized={isFinalized} />;
 
             default:
                 return <div>Select a schedule from the left panel to begin.</div>
         }
     };
 
-    const scheduleNav = [
-        {id: 'corpInfo', name: 'Corporate Info'},
-        {id: 'accountingPolicies', name: 'Accounting Policies'},
-        {id: 'shareCapital', name: 'Share Capital'},
-        {id: 'otherEquity', name: 'Other Equity'},
-        {id: 'borrowings', name: 'Borrowings'},
-        {id: 'tradePayables', name: 'Trade Payables'},
-        {id: 'msme', name: 'MSME Disclosures'},
-        {id: 'ppe', name: 'Property, Plant & Equipment'},
-        {id: 'cwip', name: 'Capital WIP'},
-        {id: 'intangible', name: 'Intangible Assets'},
-        {id: 'intangibleDev', name: 'Intangible Assets - Dev.'},
-        {id: 'investments', name: 'Investments'},
-        {id: 'loans', name: 'Loans and Advances'},
-        {id: 'inventories', name: 'Inventories (Balance)'},
-        {id: 'tradeReceivables', name: 'Trade Receivables'},
-        {id: 'longTermReceivables', name: 'Long-Term Trade Receivables'},
-        {id: 'cash', name: 'Cash & Cash Equivalents'},
-        {id: 'revenue', name: 'Revenue from Operations'},
-        {id: 'otherIncome', name: 'Other Income'},
-        {id: 'cogs', name: 'Cost of Materials'},
-        {id: 'changesInInv', name: 'Changes in Inventories'},
-        {id: 'employee', name: 'Employee Benefits'},
-        {id: 'finance', name: 'Finance Costs'},
-        {id: 'otherExpenses', name: 'Other Expenses'},
-        {id: 'tax', name: 'Tax Expense'},
-        {id: 'exceptional', name: 'Exceptional & Prior Items'},
-        {id: 'eps', name: 'Earnings Per Share'},
-        {id: 'relatedParties', name: 'Related Parties'},
-        {id: 'contingent', name: 'Contingent Liabilities'},
-        {id: 'commitments', name: 'Commitments'},
-        {id: 'auditor', name: 'Auditor Payments'},
-        {id: 'forex', name: 'Foreign Exchange'},
-        {id: 'deferredTax', name: 'Deferred Tax'},
-        {id: 'regulatory', name: 'Additional Reg. Info'},
-        {id: 'ratioExplanations', name: 'Ratio Explanations'},
-        {id: 'eventsAfterBS', name: 'Events After B/S Date'},
+    const allScheduleNav = [
+        { type: 'link', id: 'entityInfo', name: 'Entity Info' },
+        { type: 'link', id: 'accountingPolicies', name: 'Accounting Policies' },
+        
+        { type: 'header', name: 'Equity & Liabilities' },
+        { type: 'link', id: 'companyShareCap', name: 'Share Capital', noteId: 'companyShareCap' },
+        { type: 'link', id: 'companyOtherEquity', name: 'Other Equity', noteId: 'companyOtherEquity' },
+        { type: 'link', id: 'partnersFunds', name: 'Partners\'/Owners\' Funds', noteId: 'partnersFunds' },
+        { type: 'link', id: 'borrowings', name: 'Borrowings', noteId: 'borrowings' },
+        { type: 'link', id: 'otherLongTermLiabilities', name: 'Other Long-Term Liabilities' },
+        { type: 'link', id: 'provisions', name: 'Provisions (AS 29)', noteId: 'provisions' },
+        { type: 'link', id: 'tradePayables', name: 'Trade Payables', noteId: 'tradePayables' },
+        { type: 'link', id: 'otherCurrentLiabilities', name: 'Other Current Liabilities' },
+        { type: 'link', id: 'msme', name: 'MSME Disclosures' },
+        { type: 'link', id: 'deferredTax', name: 'Deferred Tax', noteId: 'deferredTax' },
+
+        { type: 'header', name: 'Assets' },
+        { type: 'link', id: 'ppe', name: 'Property, Plant & Equipment', noteId: 'ppe' },
+        { type: 'link', id: 'cwip', name: 'Capital WIP', noteId: 'cwip' },
+        { type: 'link', id: 'intangible', name: 'Intangible Assets', noteId: 'intangible' },
+        { type: 'link', id: 'intangibleDev', name: 'Intangible Assets - Dev.' },
+        { type: 'link', id: 'investments', name: 'Non-Current Investments', noteId: 'investments' },
+        { type: 'link', id: 'longTermLoans', name: 'Long-Term Loans & Advances' },
+        { type: 'link', id: 'longTermReceivables', name: 'Long-Term Trade Receivables' },
+        { type: 'link', id: 'otherNonCurrentAssets', name: 'Other Non-Current Assets' },
+        { type: 'link', id: 'currentInvestments', name: 'Current Investments' },
+        { type: 'link', id: 'inventories', name: 'Inventories', noteId: 'inventories' },
+        { type: 'link', id: 'tradeReceivables', name: 'Trade Receivables', noteId: 'tradeReceivables' },
+        { type: 'link', id: 'shortTermLoans', name: 'Short-Term Loans & Advances' },
+        { type: 'link', id: 'cash', name: 'Cash & Cash Equivalents', noteId: 'cash' },
+        { type: 'link', id: 'otherCurrentAssets', name: 'Other Current Assets' },
+
+
+        { type: 'header', name: 'Profit & Loss Statement' },
+        { type: 'link', id: 'revenue', name: 'Revenue from Operations', noteId: 'revenue' },
+        { type: 'link', id: 'otherIncome', name: 'Other Income', noteId: 'otherIncome' },
+        { type: 'link', id: 'cogs', name: 'Cost of Materials', noteId: 'cogs' },
+        { type: 'link', id: 'purchases', name: 'Purchases of Stock-in-Trade' },
+        { type: 'link', id: 'changesInInv', name: 'Changes in Inventories', noteId: 'changesInInv' },
+        { type: 'link', id: 'employee', name: 'Employee Benefits', noteId: 'employee' },
+        { type: 'link', id: 'finance', name: 'Finance Costs', noteId: 'finance' },
+        { type: 'link', id: 'otherExpenses', name: 'Other Expenses', noteId: 'otherExpenses' },
+        { type: 'link', id: 'exceptional', name: 'Exceptional & Prior Items' },
+        { type: 'link', id: 'tax', name: 'Tax Expense', noteId: 'tax' },
+
+        { type: 'header', name: 'Other Disclosures' },
+        { type: 'link', id: 'eps', name: 'Earnings Per Share', noteId: 'eps' },
+        { type: 'link', id: 'relatedParties', name: 'Related Parties', noteId: 'relatedParties' },
+        { type: 'link', id: 'contingent', name: 'Contingent Liabilities', noteId: 'contingent' },
+        { type: 'link', id: 'commitments', name: 'Commitments', noteId: 'commitments' },
+        { type: 'link', id: 'auditor', name: 'Auditor Payments', noteId: 'auditor' },
+        { type: 'link', id: 'forex', name: 'Foreign Exchange', noteId: 'forex' },
+        { type: 'link', id: 'regulatory', name: 'Additional Reg. Info', noteId: 'regulatory' },
+        { type: 'link', id: 'ratioExplanations', name: 'Ratio Explanations' },
+        { type: 'link', id: 'construction', name: 'Construction Contracts (AS 7)', noteId: 'construction' },
+        { type: 'link', id: 'govtGrants', name: 'Government Grants (AS 12)', noteId: 'govtGrants' },
+        { type: 'link', id: 'amalgamations', name: 'Amalgamations (AS 14)', noteId: 'amalgamations' },
+        { type: 'link', id: 'segmentReporting', name: 'Segment Reporting (AS 17)', noteId: 'segmentReporting' },
+        { type: 'link', id: 'leases', name: 'Leases (AS 19)', noteId: 'leases' },
+        { type: 'link', id: 'discontinuingOps', name: 'Discontinuing Operations (AS 24)', noteId: 'discontinuingOps' },
+        { type: 'link', id: 'eventsAfterBS', name: 'Events After B/S Date', noteId: 'eventsAfterBS' },
     ];
+    
+    const entityLevel = getEntityLevel(entityInfo.entityType, entityInfo);
+    const applicableNotes = getApplicableNotes(scheduleData.noteSelections, entityInfo.entityType, entityLevel);
+    const applicableNoteIds = new Set(applicableNotes.map(n => n.id));
+
+    const scheduleNav = allScheduleNav.filter(item => {
+        if (item.type === 'header') return true;
+        
+        // Special handling for Partners/Owners funds which combines two views
+        if (item.id === 'partnersFunds') {
+            return entityInfo.entityType === 'LLP' || entityInfo.entityType === 'Non-Corporate';
+        }
+        if (item.id === 'companyShareCap' || item.id === 'companyOtherEquity') {
+            return entityInfo.entityType === 'Company';
+        }
+
+        return applicableNoteIds.has(item.noteId || item.id);
+    });
 
     return (
         <div className="p-6 h-full flex flex-col space-y-4">
@@ -216,9 +312,17 @@ export const SchedulesPage: React.FC<{ allData: AllData; setScheduleData: React.
             <div className="flex-1 flex space-x-4 overflow-hidden">
                 <aside className="w-64 bg-gray-800 p-2 rounded-lg border border-gray-700 overflow-y-auto">
                     <nav className="space-y-1">
-                        {scheduleNav.sort((a,b) => a.name.localeCompare(b.name)).map(item => (
-                             <button key={item.id} onClick={() => setActiveView(item.id as ScheduleView)} className={`w-full text-left px-3 py-2 text-sm rounded-md ${activeView === item.id ? 'bg-brand-blue text-white' : 'hover:bg-gray-700'}`}>{item.name}</button>
-                        ))}
+                        {scheduleNav.map(item => {
+                            if (item.type === 'header') {
+                                return <h4 key={item.name} className="font-bold text-xs uppercase text-gray-500 mt-4 mb-1 px-3">{item.name}</h4>;
+                            }
+                            // Logic to select correct view for partners/owners funds
+                            let viewId = item.id;
+                            if (item.id === 'partnersFunds' && entityInfo.entityType === 'Non-Corporate') {
+                                viewId = 'ownersFunds';
+                            }
+                            return <button key={item.id} onClick={() => setActiveView(viewId as ScheduleView)} className={`w-full text-left px-3 py-2 text-sm rounded-md ${activeView === viewId ? 'bg-brand-blue text-white' : 'hover:bg-gray-700'}`}>{item.name}</button>
+                        })}
                     </nav>
                 </aside>
                 <main className="flex-1 bg-gray-800 p-6 rounded-lg border border-gray-700 overflow-y-auto">
