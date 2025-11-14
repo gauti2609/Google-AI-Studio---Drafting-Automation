@@ -72,15 +72,15 @@ export const ShareCapitalSchedule: React.FC<ShareCapitalScheduleProps> = ({ data
                     <tbody>
                         <tr className="font-semibold text-gray-300"><td colSpan={6} className="pt-2">Authorized</td></tr>
                         {data.authorized.map(item => <ShareClassRow key={item.id} item={item} onUpdate={(p,v) => updateRow('authorized', item.id, p, v)} onRemove={() => removeRow('authorized', item.id)} isFinalized={isFinalized} />)}
-                        {!isFinalized && <tr><td colSpan={6}><button onClick={() => addRow('authorized')}>+ Add Authorized Class</button></td></tr>}
+                        {!isFinalized && <tr><td colSpan={6} className="pt-1"><button onClick={() => addRow('authorized')} className="flex items-center text-sm text-brand-blue-light hover:text-white font-medium"><PlusIcon className="w-4 h-4 mr-1" /> Add Authorized Class</button></td></tr>}
 
                         <tr className="font-semibold text-gray-300"><td colSpan={6} className="pt-4">Issued</td></tr>
                         {data.issued.map(item => <ShareClassRow key={item.id} item={item} onUpdate={(p,v) => updateRow('issued', item.id, p, v)} onRemove={() => removeRow('issued', item.id)} isFinalized={isFinalized} />)}
-                        {!isFinalized && <tr><td colSpan={6}><button onClick={() => addRow('issued')}>+ Add Issued Class</button></td></tr>}
+                        {!isFinalized && <tr><td colSpan={6} className="pt-1"><button onClick={() => addRow('issued')} className="flex items-center text-sm text-brand-blue-light hover:text-white font-medium"><PlusIcon className="w-4 h-4 mr-1" /> Add Issued Class</button></td></tr>}
 
                         <tr className="font-semibold text-gray-300"><td colSpan={6} className="pt-4">Subscribed and Fully Paid up</td></tr>
                         {data.subscribed.map(item => <ShareClassRow key={item.id} item={item} onUpdate={(p,v) => updateRow('subscribed', item.id, p, v)} onRemove={() => removeRow('subscribed', item.id)} isFinalized={isFinalized} />)}
-                        {!isFinalized && <tr><td colSpan={6}><button onClick={() => addRow('subscribed')}>+ Add Subscribed Class</button></td></tr>}
+                        {!isFinalized && <tr><td colSpan={6} className="pt-1"><button onClick={() => addRow('subscribed')} className="flex items-center text-sm text-brand-blue-light hover:text-white font-medium"><PlusIcon className="w-4 h-4 mr-1" /> Add Subscribed Class</button></td></tr>}
                     </tbody>
                  </table>
             </Section>

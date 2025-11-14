@@ -1,6 +1,16 @@
 export type Page = 'mapping' | 'schedules' | 'notes' | 'reports';
 export type EntityType = 'Company' | 'LLP' | 'Non-Corporate';
 
+// --- API & High Level ---
+export interface FinancialEntity {
+  id: string;
+  name: string;
+  entityType: EntityType;
+  createdAt: string;
+  updatedAt: string;
+}
+
+
 // --- Trial Balance & Mapping ---
 export interface TrialBalanceItem {
   id: string;

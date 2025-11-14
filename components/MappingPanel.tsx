@@ -1,17 +1,16 @@
-
 import React, { useState, useEffect } from 'react';
-// FIX: Add file extensions to fix module resolution errors.
 import { TrialBalanceItem, Masters, MappingSuggestion } from '../types.ts';
-import { getMappingSuggestion } from '../services/geminiService.ts';
+import * as apiService from '../services/apiService.ts';
 import { WandIcon, CheckCircleIcon } from './icons.tsx';
 
 interface MappingPanelProps {
   ledger: TrialBalanceItem | undefined;
   masters: Masters;
   onMapLedger: (ledgerId: string, mapping: { majorHeadCode: string; minorHeadCode: string; groupingCode: string }) => void;
+  token: string;
 }
 
-export const MappingPanel: React.FC<MappingPanelProps> = ({ ledger, masters, onMapLedger }) => {
+export const MappingPanel: React.FC<MappingPanelProps> = ({ ledger, masters, onMapLedger, token }) => {
   const [majorHead, setMajorHead] = useState('');
   const [minorHead, setMinorHead] = useState('');
   const [grouping, setGrouping] = useState('');
@@ -30,8 +29,10 @@ export const MappingPanel: React.FC<MappingPanelProps> = ({ ledger, masters, onM
     if (!ledger) return;
     setIsLoadingSuggestion(true);
     setSuggestion(null);
-    const result = await getMappingSuggestion(ledger.ledger, masters);
-    setSuggestion(result);
+    const result = await apiService.getMappingSuggestion(token, ledger.ledger, masters);
+    if (result) {
+        setSuggestion(result);
+    }
     setIsLoadingSuggestion(false);
   };
   

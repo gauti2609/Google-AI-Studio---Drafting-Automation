@@ -1,4 +1,5 @@
 
+
 import React, { useState } from 'react';
 import { AllData, ScheduleData } from '../types.ts';
 import { ShareCapitalSchedule } from '../components/schedules/ShareCapitalSchedule.tsx';
@@ -65,7 +66,7 @@ import { getEntityLevel, getApplicableNotes } from '../utils/applicabilityUtils.
 type ScheduleView = 'entityInfo' | 'accountingPolicies' | 'shareCapital' | 'otherEquity' | 'partnersFunds' | 'ownersFunds' |'borrowings' | 'otherLongTermLiabilities' | 'provisions' | 'tradePayables' | 'otherCurrentLiabilities' | 'msme' | 'ppe' | 'cwip' | 'intangible' | 'intangibleDev' | 'investments' | 'longTermLoans' | 'longTermReceivables' | 'otherNonCurrentAssets' | 'currentInvestments' | 'inventories' | 'tradeReceivables' | 'cash' | 'shortTermLoans' | 'otherCurrentAssets' | 'revenue' | 'otherIncome' | 'cogs' | 'purchases' | 'changesInInv' | 'employee' | 'finance' | 'otherExpenses' | 'tax' | 'exceptional' | 'eps' | 'relatedParties' | 'contingent' | 'commitments' | 'eventsAfterBS' | 'forex' | 'auditor' | 'regulatory' | 'deferredTax' | 'ratioExplanations' | 'construction' | 'govtGrants' | 'segmentReporting' | 'leases' | 'discontinuingOps' | 'amalgamations';
 
 export const SchedulesPage: React.FC<{ allData: AllData; setScheduleData: React.Dispatch<React.SetStateAction<ScheduleData>> }> = ({ allData, setScheduleData }) => {
-    const [activeView, setActiveView] = useState<ScheduleView>('entityInfo');
+    const [activeView, setActiveView] = useState<ScheduleView | null>(null);
     const [isConfirmModalOpen, setConfirmModalOpen] = useState(false);
     
     const { scheduleData } = allData;
@@ -82,6 +83,9 @@ export const SchedulesPage: React.FC<{ allData: AllData; setScheduleData: React.
     }
 
     const renderSchedule = () => {
+        if (!activeView) {
+            return <div>Select a schedule from the left panel to begin.</div>;
+        }
         switch (activeView) {
             // General
             case 'entityInfo':
@@ -217,14 +221,14 @@ export const SchedulesPage: React.FC<{ allData: AllData; setScheduleData: React.
         { type: 'link', id: 'accountingPolicies', name: 'Accounting Policies' },
         
         { type: 'header', name: 'Equity & Liabilities' },
-        { type: 'link', id: 'companyShareCap', name: 'Share Capital', noteId: 'companyShareCap' },
-        { type: 'link', id: 'companyOtherEquity', name: 'Other Equity', noteId: 'companyOtherEquity' },
+        { type: 'link', id: 'shareCapital', name: 'Share Capital', noteId: 'companyShareCap' },
+        { type: 'link', id: 'otherEquity', name: 'Other Equity', noteId: 'companyOtherEquity' },
         { type: 'link', id: 'partnersFunds', name: 'Partners\'/Owners\' Funds', noteId: 'partnersFunds' },
         { type: 'link', id: 'borrowings', name: 'Borrowings', noteId: 'borrowings' },
-        { type: 'link', id: 'otherLongTermLiabilities', name: 'Other Long-Term Liabilities' },
+        { type: 'link', id: 'otherLongTermLiabilities', name: 'Other Long-Term Liabilities', noteId: 'otherLongTermLiabilities' },
         { type: 'link', id: 'provisions', name: 'Provisions (AS 29)', noteId: 'provisions' },
         { type: 'link', id: 'tradePayables', name: 'Trade Payables', noteId: 'tradePayables' },
-        { type: 'link', id: 'otherCurrentLiabilities', name: 'Other Current Liabilities' },
+        { type: 'link', id: 'otherCurrentLiabilities', name: 'Other Current Liabilities', noteId: 'otherCurrentLiabilities' },
         { type: 'link', id: 'msme', name: 'MSME Disclosures' },
         { type: 'link', id: 'deferredTax', name: 'Deferred Tax', noteId: 'deferredTax' },
 
@@ -234,27 +238,27 @@ export const SchedulesPage: React.FC<{ allData: AllData; setScheduleData: React.
         { type: 'link', id: 'intangible', name: 'Intangible Assets', noteId: 'intangible' },
         { type: 'link', id: 'intangibleDev', name: 'Intangible Assets - Dev.' },
         { type: 'link', id: 'investments', name: 'Non-Current Investments', noteId: 'investments' },
-        { type: 'link', id: 'longTermLoans', name: 'Long-Term Loans & Advances' },
+        { type: 'link', id: 'longTermLoans', name: 'Long-Term Loans & Advances', noteId: 'longTermLoans' },
         { type: 'link', id: 'longTermReceivables', name: 'Long-Term Trade Receivables' },
-        { type: 'link', id: 'otherNonCurrentAssets', name: 'Other Non-Current Assets' },
-        { type: 'link', id: 'currentInvestments', name: 'Current Investments' },
+        { type: 'link', id: 'otherNonCurrentAssets', name: 'Other Non-Current Assets', noteId: 'otherNonCurrentAssets' },
+        { type: 'link', id: 'currentInvestments', name: 'Current Investments', noteId: 'currentInvestments' },
         { type: 'link', id: 'inventories', name: 'Inventories', noteId: 'inventories' },
         { type: 'link', id: 'tradeReceivables', name: 'Trade Receivables', noteId: 'tradeReceivables' },
-        { type: 'link', id: 'shortTermLoans', name: 'Short-Term Loans & Advances' },
+        { type: 'link', id: 'shortTermLoans', name: 'Short-Term Loans & Advances', noteId: 'shortTermLoans' },
         { type: 'link', id: 'cash', name: 'Cash & Cash Equivalents', noteId: 'cash' },
-        { type: 'link', id: 'otherCurrentAssets', name: 'Other Current Assets' },
+        { type: 'link', id: 'otherCurrentAssets', name: 'Other Current Assets', noteId: 'otherCurrentAssets' },
 
 
         { type: 'header', name: 'Profit & Loss Statement' },
         { type: 'link', id: 'revenue', name: 'Revenue from Operations', noteId: 'revenue' },
         { type: 'link', id: 'otherIncome', name: 'Other Income', noteId: 'otherIncome' },
         { type: 'link', id: 'cogs', name: 'Cost of Materials', noteId: 'cogs' },
-        { type: 'link', id: 'purchases', name: 'Purchases of Stock-in-Trade' },
+        { type: 'link', id: 'purchases', name: 'Purchases of Stock-in-Trade', noteId: 'purchases' },
         { type: 'link', id: 'changesInInv', name: 'Changes in Inventories', noteId: 'changesInInv' },
         { type: 'link', id: 'employee', name: 'Employee Benefits', noteId: 'employee' },
         { type: 'link', id: 'finance', name: 'Finance Costs', noteId: 'finance' },
         { type: 'link', id: 'otherExpenses', name: 'Other Expenses', noteId: 'otherExpenses' },
-        { type: 'link', id: 'exceptional', name: 'Exceptional & Prior Items' },
+        { type: 'link', id: 'exceptional', name: 'Exceptional & Prior Items', noteId: 'exceptionalItems' },
         { type: 'link', id: 'tax', name: 'Tax Expense', noteId: 'tax' },
 
         { type: 'header', name: 'Other Disclosures' },
@@ -286,11 +290,17 @@ export const SchedulesPage: React.FC<{ allData: AllData; setScheduleData: React.
         if (item.id === 'partnersFunds') {
             return entityInfo.entityType === 'LLP' || entityInfo.entityType === 'Non-Corporate';
         }
-        if (item.id === 'companyShareCap' || item.id === 'companyOtherEquity') {
+        if (item.id === 'shareCapital' || item.id === 'otherEquity') {
             return entityInfo.entityType === 'Company';
         }
 
-        return applicableNoteIds.has(item.noteId || item.id);
+        // FIX: A schedule should be shown if it's not tied to a selectable note, OR if it is tied to one that is applicable.
+        const noteId = (item as {noteId?: string}).noteId;
+        if (noteId) {
+            const note = scheduleData.noteSelections.find(n => n.id === noteId);
+            return note ? note.isSelected : true;
+        }
+        return true;
     });
 
     return (

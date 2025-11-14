@@ -41,6 +41,8 @@ import { DiscontinuingOperationsNote } from './notes/DiscontinuingOperationsNote
 import { AmalgamationsNote } from './notes/AmalgamationsNote.tsx';
 import { ProvisionsNote } from './notes/ProvisionsNote.tsx';
 import { PartnerOwnerFundsNote } from './notes/PartnerOwnerFundsNote.tsx';
+import { GenericNote } from './notes/GenericNote.tsx';
+import { ExceptionalItemsNote } from './notes/ExceptionalItemsNote.tsx';
 
 
 interface ReportProps {
@@ -69,24 +71,38 @@ export const NotesToAccounts: React.FC<ReportProps> = ({ allData }) => {
         companyShareCap: { title: 'Share Capital', component: <ShareCapitalNote data={scheduleData.companyShareCapital} /> },
         companyOtherEquity: { title: 'Other Equity', component: <OtherEquityNote data={scheduleData.companyOtherEquity} /> },
         partnersFunds: { title: scheduleData.entityInfo.entityType === 'LLP' ? 'Partners\' Funds' : 'Owners\' Funds', component: <PartnerOwnerFundsNote data={scheduleData.partnersFunds} /> },
+        borrowings: { title: 'Borrowings', component: <BorrowingsNote data={scheduleData.borrowings} /> },
+        // FIX: Added missing 'title' prop to GenericNote component.
+        otherLongTermLiabilities: { title: 'Other Long-Term Liabilities', component: <GenericNote title="Other Long-Term Liabilities" data={scheduleData.otherLongTermLiabilities} /> },
+        provisions: { title: 'Provisions', component: <ProvisionsNote data={scheduleData.provisions} /> },
+        deferredTax: { title: 'Deferred Tax', component: <div>Not Implemented</div> },
+        tradePayables: { title: 'Trade Payables', component: <><TradePayablesAgeingNote data={scheduleData.tradePayables.ageing} /><TradePayablesMsmeNote data={scheduleData.tradePayables.msmeDisclosures} /></> },
+        // FIX: Added missing 'title' prop to GenericNote component.
+        otherCurrentLiabilities: { title: 'Other Current Liabilities', component: <GenericNote title="Other Current Liabilities" data={scheduleData.otherCurrentLiabilities} /> },
         ppe: { title: 'Property, Plant and Equipment', component: <PPENote data={scheduleData.ppe} /> },
         intangible: { title: 'Intangible Assets', component: <IntangibleAssetsNote data={scheduleData.intangibleAssets} /> },
         cwip: { title: 'Capital Work-in-Progress', component: <CWIPNote data={scheduleData.cwip} /> },
         investments: { title: 'Non-Current Investments', component: <InvestmentsNote data={scheduleData.investments} /> },
-        loans: { title: 'Long-Term Loans & Advances', component: <LoansAndAdvancesNote data={scheduleData.loansAndAdvances} /> },
+        longTermLoans: { title: 'Long-Term Loans & Advances', component: <LoansAndAdvancesNote data={scheduleData.loansAndAdvances} /> },
+        // FIX: Added missing 'title' prop to GenericNote component.
+        otherNonCurrentAssets: { title: 'Other Non-Current Assets', component: <GenericNote title="Other Non-Current Assets" data={scheduleData.otherNonCurrentAssets} /> },
+        currentInvestments: { title: 'Current Investments', component: <InvestmentsNote data={scheduleData.currentInvestments} /> },
         inventories: { title: 'Inventories', component: <InventoriesBalanceNote data={scheduleData.inventories} valuationMode={scheduleData.inventoriesValuationMode} /> },
         tradeReceivables: { title: 'Trade Receivables', component: <TradeReceivablesNote data={scheduleData.tradeReceivables} /> },
         cash: { title: 'Cash and Cash Equivalents', component: <CashAndCashEquivalentsNote data={scheduleData.cashAndCashEquivalents} /> },
-        borrowings: { title: 'Borrowings', component: <BorrowingsNote data={scheduleData.borrowings} /> },
-        tradePayables: { title: 'Trade Payables', component: <><TradePayablesAgeingNote data={scheduleData.tradePayables.ageing} /><TradePayablesMsmeNote data={scheduleData.tradePayables.msmeDisclosures} /></> },
-        provisions: { title: 'Provisions', component: <ProvisionsNote data={scheduleData.provisions} /> },
+        shortTermLoans: { title: 'Short-Term Loans & Advances', component: <LoansAndAdvancesNote data={scheduleData.shortTermLoansAndAdvances} /> },
+        // FIX: Added missing 'title' prop to GenericNote component.
+        otherCurrentAssets: { title: 'Other Current Assets', component: <GenericNote title="Other Current Assets" data={scheduleData.otherCurrentAssets} /> },
         revenue: { title: 'Revenue from Operations', component: <RevenueFromOpsNote data={scheduleData.revenueFromOps} /> },
         otherIncome: { title: 'Other Income', component: <OtherIncomeNote data={scheduleData.otherIncome} /> },
         cogs: { title: 'Cost of Materials Consumed', component: <CostOfMaterialsConsumedNote data={scheduleData.costOfMaterialsConsumed} /> },
+        // FIX: Added missing 'title' prop to GenericNote component.
+        purchases: { title: 'Purchases of Stock-in-Trade', component: <GenericNote title="Purchases of Stock-in-Trade" data={scheduleData.purchases} /> },
         changesInInv: { title: 'Changes in Inventories', component: <div>Not Implemented</div> },
         employee: { title: 'Employee Benefit Expense', component: <EmployeeBenefitsNote data={scheduleData.employeeBenefits} allData={allData} /> },
         finance: { title: 'Finance Costs', component: <FinanceCostsNote data={scheduleData.financeCosts} /> },
         otherExpenses: { title: 'Other Expenses', component: <OtherExpensesNote data={scheduleData.otherExpenses} /> },
+        exceptionalItems: { title: 'Exceptional and Prior Period Items', component: <ExceptionalItemsNote data={scheduleData.exceptionalItems} /> },
         tax: { title: 'Tax Expense', component: <TaxExpenseNote data={scheduleData.taxExpense} /> },
         eps: { title: 'Earnings Per Share', component: <EarningsPerShareNote data={scheduleData.eps} /> },
         relatedParties: { title: 'Related Party Disclosures', component: <RelatedPartyNote data={scheduleData.relatedParties} /> },

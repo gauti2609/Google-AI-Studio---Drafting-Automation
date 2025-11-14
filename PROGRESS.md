@@ -96,7 +96,6 @@ This phase addresses items identified during the final audit against Schedule II
 
 ## Phase VII: Final Polish & Accounting Standards Compliance (Complete)
 This phase addresses the final detailed disclosures required by the provided Accounting Standards (AS).
-
 - [x] **Implement Dynamic Note Numbering:** Ensure note numbers are sequential based on user selection in all reports.
 - [x] **Implement AS 7: Construction Contracts Schedule & Note:**
 - [x] **Implement AS 12: Government Grants Schedule & Note:**
@@ -115,27 +114,27 @@ This phase addresses the final detailed disclosures required by the provided Acc
 ---
 
 ## Phase VIII: LLP & Non-Corporate Entity Support (Complete)
-This phase will extend the application to support financial statement drafting for Limited Liability Partnerships (LLPs) and other Non-Corporate Entities based on ICAI guidance.
-
-- **[x] Core Architecture:**
-    - **[x] Entity Type Selection:** Implement a mechanism for the user to select Entity Type (Company, LLP, Non-Corporate) and persist the choice.
-    - **[x] Entity Classification Logic:** Add fields to Entity Info (e.g., turnover, borrowings) and create a utility to determine the entity's level (MSME/Large or Level I/II/III/IV) based on ICAI criteria.
-- **[x] Report Format Adaptation:**
-    - **[x] Adapt `types.ts`:** Add data structures for Partners'/Owners' Funds.
-    - **[x] Adapt Balance Sheet:** Conditionally render "Equity" section vs. "Partners'/Owners' Funds" based on entity type.
-    - **[x] Adapt P&L Statement:** Conditionally render items like "Partners' Remuneration" for LLPs.
-- **[x] Conditional Display Logic:**
-    - **[x] Create Applicability Rules:** Develop a utility function based on ICAI documents to determine if a specific Accounting Standard/Note is applicable based on entity type and level.
-    - **[x] Filter Schedules Navigation:** Update `SchedulesPage.tsx` to show only applicable schedules.
-    - **[x] Filter Notes Selection:** Update `NotesSelectionPage.tsx` to show only applicable notes.
-- **[x] New Schedules:**
-    - **[x] Create Partners' Funds Schedule:** For LLP, to manage capital/current accounts, remuneration, interest, etc.
-    - **[x] Create Owners' Funds Schedule:** For Non-Corporate entities, similar to the LLP schedule.
-- **[x] Review and Unify Existing Schedules:**
-    - **[x] Review all existing schedules** (PPE, Investments, Borrowings, etc.) against LLP and Non-Corporate format requirements.
-    - **[x] Add any required fields** to existing schedules with conditional rendering, adhering to the "no new formats" rule.
+This phase extended the application to support financial statement drafting for Limited Liability Partnerships (LLPs) and other Non-Corporate Entities based on ICAI guidance.
+- [x] **Core Architecture & Entity Classification:** Implemented entity type selection and automatic classification based on ICAI criteria.
+- [x] **Report Format Adaptation:** Adapted Balance Sheet and P&L to conditionally render correct sections based on entity type.
+- [x] **Conditional Display Logic:** Filtered schedule navigation and note selection based on entity type and level.
+- [x] **New Schedules:** Created schedules for Partners'/Owners' Funds.
+- [x] **Unified Schedules:** Reviewed and unified existing schedules for use across all entity types.
 
 ---
-## Current Status: **Project Complete.**
 
-All planned development phases are now finished. The application supports financial statement drafting for Companies, LLPs, and Non-Corporate entities with full compliance for Schedule III and applicable Accounting Standards.
+## Phase IX: Backend Development (Complete)
+- [x] **Backend Scaffolding & DB Setup:** Initialized Node.js (NestJS) project, configured Prisma ORM, and set up Docker for PostgreSQL.
+- [x] **Define Database Schema & Implement Authentication API:** Created Prisma schema and built secure endpoints for user registration and login using JWT.
+- [x] **Core API for Entity Management:** Built CRUD endpoints to create, read, update, and delete financial entities, with multi-user data isolation.
+- [x] **Frontend Integration: Auth & Dashboard:** Implemented login/registration pages and a dashboard for creating/selecting entities.
+- [x] **Secure Gemini API Proxy:** Moved Gemini API calls to a secure backend endpoint to protect the API key.
+- [x] **Implement Auto-Save, Undo/Redo & Delete Functionality:** Replaced manual save with a debounced auto-save, implemented undo/redo for a modern UX, and added entity deletion.
+
+---
+
+## Phase X: Deployment Preparation (In Progress)
+- [ ] **Finalize Docker configuration:**
+  - [x] Create backend Dockerfile.
+  - [ ] Create frontend Dockerfile.
+  - [ ] Create Nginx configuration.

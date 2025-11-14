@@ -79,14 +79,12 @@ export const ProfitAndLossStatement: React.FC<ReportProps> = ({ allData }) => {
     const otherExpensesPy = getTBTotal('C.20.07', 'py');
     const depreciationPy = 0; 
 
-    // Treat Partners' Remuneration as an operating expense for LLPs/Non-Corporates
+    // Partners' Remuneration is handled after PAT for LLPs/Non-Corporates
     const partnersRemunerationCy = getTBTotal('C.20.11', 'cy');
     const partnersRemunerationPy = getTBTotal('C.20.11', 'py');
-    const partnersRemunerationExpenseCy = entityType !== 'Company' ? partnersRemunerationCy : 0;
-    const partnersRemunerationExpensePy = entityType !== 'Company' ? partnersRemunerationPy : 0;
     
-    const totalExpensesCy = costOfMaterialsConsumedCy + purchasesStockInTradeCy + changesInInventoriesCy + employeeBenefitsCy + financeCostsCy + otherExpensesCy + depreciationCy + partnersRemunerationExpenseCy;
-    const totalExpensesPy = costOfMaterialsConsumedPy + purchasesStockInTradePy + changesInInventoriesPy + employeeBenefitsPy + financeCostsPy + otherExpensesPy + depreciationPy + partnersRemunerationExpensePy;
+    const totalExpensesCy = costOfMaterialsConsumedCy + purchasesStockInTradeCy + changesInInventoriesCy + employeeBenefitsCy + financeCostsCy + otherExpensesCy + depreciationCy;
+    const totalExpensesPy = costOfMaterialsConsumedPy + purchasesStockInTradePy + changesInInventoriesPy + employeeBenefitsPy + financeCostsPy + otherExpensesPy + depreciationPy;
     
     // --- PROFIT ---
     const profitBeforeExceptionalCy = totalIncomeCy - totalExpensesCy;
@@ -103,9 +101,11 @@ export const ProfitAndLossStatement: React.FC<ReportProps> = ({ allData }) => {
     const profitAfterTaxCy = profitBeforeTaxCy - taxCy;
     const profitAfterTaxPy = profitBeforeTaxPy - taxPy;
     
-    // For LLPs/Non-Corporates, PAT is the amount transferred to partners' accounts.
-    const netProfitTransferredCy = profitAfterTaxCy;
-    const netProfitTransferredPy = profitAfterTaxPy;
+    // For LLPs/Non-Corporates, deduct remuneration after PAT to find profit transferred.
+    const remunerationExpenseCy = entityType !== 'Company' ? partnersRemunerationCy : 0;
+    const remunerationExpensePy = entityType !== 'Company' ? partnersRemunerationPy : 0;
+    const netProfitTransferredCy = profitAfterTaxCy - remunerationExpenseCy;
+    const netProfitTransferredPy = profitAfterTaxPy - remunerationExpensePy;
     
     // --- EPS ---
     const shares = parse(scheduleData.eps.weightedAvgEquityShares);
@@ -138,9 +138,6 @@ export const ProfitAndLossStatement: React.FC<ReportProps> = ({ allData }) => {
                         <ReportRow label="Finance costs" note={noteNumberMap['finance']?.toString()} valueCy={financeCostsCy} valuePy={financeCostsPy} formatFn={format} />
                         <ReportRow label="Depreciation and amortisation expense" note={`${noteNumberMap['ppe'] || ''}, ${noteNumberMap['intangible'] || ''}`} valueCy={depreciationCy} valuePy={depreciationPy} formatFn={format} />
                         <ReportRow label="Other expenses" note={noteNumberMap['otherExpenses']?.toString()} valueCy={otherExpensesCy} valuePy={otherExpensesPy} formatFn={format} />
-                        {entityType !== 'Company' && (
-                            <ReportRow label="Partners' Remuneration" valueCy={partnersRemunerationCy} valuePy={partnersRemunerationPy} formatFn={format} />
-                        )}
                         <ReportRow label="Total Expenses" valueCy={totalExpensesCy} valuePy={totalExpensesPy} isBold formatFn={format} />
                         
                         <ReportRow label="V. Profit before exceptional items and tax (III - IV)" valueCy={profitBeforeExceptionalCy} valuePy={profitBeforeExceptionalPy} isBold formatFn={format} />
@@ -148,7 +145,7 @@ export const ProfitAndLossStatement: React.FC<ReportProps> = ({ allData }) => {
                         
                         <ReportRow label="VII. Profit before tax (V - VI)" valueCy={profitBeforeTaxCy} valuePy={profitBeforeTaxPy} isBold formatFn={format} />
                         <ReportRow label="VIII. Tax expense" note={noteNumberMap['tax']?.toString()} valueCy={taxCy} valuePy={taxPy} formatFn={format} />
-                        <ReportRow label="IX. Profit (Loss) for the period (VII - VIII)" valueCy={profitAfterTaxCy} valuePy={profitAfterTaxPy} isBold formatFn={format} />
+                        <ReportRow label="IX. Profit (Loss) after tax (VII - VIII)" valueCy={profitAfterTaxCy} valuePy={profitAfterTaxPy} isBold formatFn={format} />
 
                         {entityType === 'Company' ? (
                             <>
@@ -157,7 +154,10 @@ export const ProfitAndLossStatement: React.FC<ReportProps> = ({ allData }) => {
                                 <ReportRow label="Diluted (₹)" note={noteNumberMap['eps']?.toString()} valueCy={basicEpsCy} valuePy={basicEpsPy} formatFn={format} isSub />
                             </>
                         ) : (
-                            <ReportRow label="X. Net Profit transferred to Partners'/Owners' Account" valueCy={netProfitTransferredCy} valuePy={netProfitTransferredPy} isBold formatFn={format} />
+                            <>
+                                <ReportRow label="Less: Remuneration to Partners/Owners" valueCy={remunerationExpenseCy} valuePy={remunerationExpensePy} formatFn={format} />
+                                <ReportRow label="X. Net Profit transferred to Partners'/Owners' Account" valueCy={netProfitTransferredCy} valuePy={netProfitTransferredPy} isBold formatFn={format} />
+                            </>
                         )}
                     </tbody>
                 </table>

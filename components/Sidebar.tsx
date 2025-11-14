@@ -1,11 +1,12 @@
 import React from 'react';
-// FIX: Add file extensions to fix module resolution errors.
 import { Page } from '../types.ts';
-import { MapIcon, FileTextIcon, ListBulletIcon, BarChartIcon } from './icons.tsx';
+import { MapIcon, FileTextIcon, ListBulletIcon, BarChartIcon, ArrowLeftIcon, LogoutIcon } from './icons.tsx';
 
 interface SidebarProps {
   activePage: Page;
   setActivePage: (page: Page) => void;
+  onBack: () => void;
+  onLogout: () => void;
 }
 
 const NavItem: React.FC<{
@@ -27,14 +28,10 @@ const NavItem: React.FC<{
     </button>
 );
 
-export const Sidebar: React.FC<SidebarProps> = ({ activePage, setActivePage }) => {
+export const Sidebar: React.FC<SidebarProps> = ({ activePage, setActivePage, onBack, onLogout }) => {
   return (
     <aside className="w-64 bg-gray-800 border-r border-gray-700 p-4 flex flex-col print:hidden">
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold text-white">FinAutomate</h1>
-        <p className="text-xs text-gray-400">Phase I Workbench</p>
-      </div>
-      <nav className="space-y-2">
+      <nav className="flex-1 space-y-2">
         <NavItem 
             label="Mapping Workbench" 
             isActive={activePage === 'mapping'} 
@@ -60,6 +57,22 @@ export const Sidebar: React.FC<SidebarProps> = ({ activePage, setActivePage }) =
             icon={<BarChartIcon className="w-5 h-5"/>}
         />
       </nav>
+      <div className="mt-auto space-y-2">
+         <button
+            onClick={onBack}
+            className="w-full flex items-center px-4 py-2.5 rounded-md text-sm font-medium text-gray-400 hover:bg-gray-700 hover:text-gray-200"
+        >
+            <ArrowLeftIcon className="w-5 h-5"/>
+            <span className="ml-3">Back to Dashboard</span>
+        </button>
+         <button
+            onClick={onLogout}
+            className="w-full flex items-center px-4 py-2.5 rounded-md text-sm font-medium text-gray-400 hover:bg-gray-700 hover:text-gray-200"
+        >
+            <LogoutIcon className="w-5 h-5"/>
+            <span className="ml-3">Logout</span>
+        </button>
+      </div>
     </aside>
   );
 };

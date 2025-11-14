@@ -8,7 +8,6 @@ import { TrialBalanceItem, Masters, AllData } from '../types.ts';
 import { ImportModal } from './ImportModal.tsx';
 import { MastersModal } from './MastersModal.tsx';
 import { UploadIcon, CogIcon } from './icons.tsx';
-import { ConfirmationModal } from './ConfirmationModal.tsx';
 
 interface MappingWorkbenchProps {
     allData: AllData;
@@ -16,15 +15,14 @@ interface MappingWorkbenchProps {
     onImport: (data: Omit<TrialBalanceItem, 'id' | 'isMapped' | 'majorHeadCode' | 'minorHeadCode' | 'groupingCode'>[]) => void;
     masters: Masters;
     setMasters: (masters: Masters) => void;
-    onReset: () => void;
+    token: string;
 }
 
-export const MappingWorkbench: React.FC<MappingWorkbenchProps> = ({ allData, setTrialBalanceData, onImport, masters, setMasters, onReset }) => {
+export const MappingWorkbench: React.FC<MappingWorkbenchProps> = ({ allData, setTrialBalanceData, onImport, masters, setMasters, token }) => {
     const { trialBalanceData } = allData;
     const [selectedLedgerId, setSelectedLedgerId] = React.useState<string | null>(null);
     const [isImportModalOpen, setImportModalOpen] = React.useState(false);
     const [isMastersModalOpen, setMastersModalOpen] = React.useState(false);
-    const [isResetModalOpen, setResetModalOpen] = React.useState(false);
     
     const unmappedLedgers = trialBalanceData.filter(item => !item.isMapped);
     const mappedLedgers = trialBalanceData.filter(item => item.isMapped);
@@ -69,9 +67,6 @@ export const MappingWorkbench: React.FC<MappingWorkbenchProps> = ({ allData, set
                          <CogIcon className="w-4 h-4 mr-2"/>
                         View Masters
                     </button>
-                     <button onClick={() => setResetModalOpen(true)} className="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-md transition-colors text-sm">
-                        Reset Data
-                    </button>
                 </div>
             </header>
 
@@ -91,20 +86,13 @@ export const MappingWorkbench: React.FC<MappingWorkbenchProps> = ({ allData, set
                         ledger={selectedLedger}
                         masters={masters}
                         onMapLedger={handleMapLedger}
+                        token={token}
                     />
                 </div>
             </div>
 
             <ImportModal isOpen={isImportModalOpen} onClose={() => setImportModalOpen(false)} onImport={onImport} />
             <MastersModal isOpen={isMastersModalOpen} onClose={() => setMastersModalOpen(false)} masters={masters} setMasters={setMasters} />
-            <ConfirmationModal
-                isOpen={isResetModalOpen}
-                onClose={() => setResetModalOpen(false)}
-                onConfirm={onReset}
-                title="Reset All Data?"
-                message="Are you sure you want to reset all data? This will clear your imported trial balance and any schedule entries. This action cannot be undone."
-                confirmButtonText="Yes, Reset"
-            />
         </div>
     );
 };
